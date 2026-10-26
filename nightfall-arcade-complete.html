@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Nightfall Arcade</title>
+  <style>
+    :root {
+      --bg: #0b0d14;
+      --card: #151821;
+      --card-hover: #1c2030;
+      --border: #2a2f3d;
+      --text: #f0f2f8;
+      --muted: #8b91a8;
+      --accent: #5b8def;
+      --green: #34d399;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.45;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(11,13,20,0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 12px;
+      height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { font-weight: 700; font-size: 1.1rem; }
+    .brand span { color: var(--accent); }
+    .tabs {
+      display: flex; gap: 2px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px; padding: 3px;
+    }
+    .tab {
+      background: transparent; border: none;
+      color: var(--muted); padding: 7px 13px; border-radius: 8px;
+      font-weight: 600; font-size: 0.82rem; cursor: pointer;
+    }
+    .tab.active {
+      background: var(--card); color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .hero {
+      text-align: center;
+      padding: 36px 18px 24px;
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(91,141,239,0.14), transparent);
+    }
+    .hero h1 {
+      font-size: clamp(1.7rem, 5.5vw, 2.4rem);
+      font-weight: 800; letter-spacing: -0.8px; margin-bottom: 8px;
+    }
+    .hero p { color: var(--muted); font-size: 0.92rem; max-width: 340px; margin: 0 auto 20px; }
+    .stats { display: flex; justify-content: center; gap: 28px; }
+    .stat strong { display: block; font-size: 1.4rem; font-weight: 700; color: var(--green); }
+    .stat span { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 0 14px 50px; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .sec-title {
+      font-size: 1.1rem; font-weight: 700;
+      margin: 24px 0 12px; display: flex; align-items: center; gap: 8px;
+    }
+    .search-wrap { margin-bottom: 14px; }
+    .search-wrap input {
+      width: 100%; background: var(--card); border: 1px solid var(--border);
+      color: var(--text); padding: 12px 14px; border-radius: 12px;
+      font-size: 0.95rem; outline: none;
+    }
+    .search-wrap input:focus { border-color: var(--accent); }
+    .pgrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 11px;
+    }
+    .pcard {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 15px;
+      cursor: pointer; transition: 0.15s; user-select: none;
+    }
+    .pcard:active, .pcard:hover {
+      background: var(--card-hover); border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .pcard-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
+    .pcard-name { font-weight: 700; font-size: 0.98rem; }
+    .badge-w {
+      font-size: 0.66rem; font-weight: 700; padding: 3px 8px;
+      border-radius: 999px; background: rgba(52,211,153,0.15); color: var(--green);
+      flex-shrink: 0;
+    }
+    .pcard-url {
+      font-size: 0.7rem; color: var(--muted); word-break: break-all;
+      font-family: ui-monospace, monospace; margin-bottom: 11px;
+    }
+    .pcard-btn {
+      display: block; text-align: center;
+      background: linear-gradient(135deg, #5b8def, #4a6fd4);
+      color: #fff; font-weight: 600; font-size: 0.84rem;
+      padding: 10px; border-radius: 10px;
+    }
+    .cats {
+      display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;
+      margin-bottom: 14px; -webkit-overflow-scrolling: touch;
+    }
+    .cats::-webkit-scrollbar { display: none; }
+    .cat {
+      flex-shrink: 0;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--muted); padding: 7px 13px; border-radius: 999px;
+      font-size: 0.78rem; font-weight: 600; cursor: pointer;
+    }
+    .cat.active {
+      background: rgba(91,141,239,0.18); color: var(--text);
+      border-color: var(--accent);
+    }
+    .ggrid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 11px;
+    }
+    @media (min-width: 640px) { .ggrid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 900px) { .ggrid { grid-template-columns: repeat(4, 1fr); } }
+    .gcard {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+      cursor: pointer; transition: 0.15s; text-align: center;
+      user-select: none;
+    }
+    .gcard:active, .gcard:hover {
+      transform: translateY(-3px);
+      border-color: rgba(91,141,239,0.5);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.3);
+    }
+    .gthumb {
+      height: 96px; display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem;
+      background: linear-gradient(160deg, #1a1e2b, #12151f);
+    }
+    .gcard h3 { font-size: 0.9rem; font-weight: 700; padding: 11px 8px 2px; }
+    .gcard p { font-size: 0.7rem; color: var(--muted); padding: 0 8px 13px; }
+    .play-area {
+      display: none; margin-top: 18px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 14px;
+    }
+    .play-area.show { display: block; }
+    .play-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px;
+    }
+    .play-head h3 { font-size: 1.05rem; }
+    .xbtn {
+      background: #2a2f3d; border: none; color: var(--text);
+      width: 32px; height: 32px; border-radius: 9px; font-size: 1.05rem; cursor: pointer;
+    }
+    canvas {
+      display: block; margin: 0 auto; background: #0a0c12;
+      border-radius: 10px; max-width: 100%; touch-action: none;
+    }
+    .controls { text-align: center; margin-top: 9px; color: var(--muted); font-size: 0.78rem; }
+    .tos-box {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px; margin-top: 8px;
+      font-size: 0.88rem; color: var(--muted); line-height: 1.6;
+    }
+    .tos-box h3 { color: var(--text); margin: 16px 0 6px; font-size: 0.98rem; }
+    .tos-box h3:first-child { margin-top: 0; }
+    .tos-box ul { padding-left: 18px; margin: 6px 0; }
+    .tos-box li { margin-bottom: 5px; }
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(8px); z-index: 100;
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 16px; opacity: 0; visibility: hidden; transition: 0.2s;
+    }
+    @media (min-width: 500px) { .overlay { align-items: center; } }
+    .overlay.show { opacity: 1; visibility: visible; }
+    .modal {
+      background: #1a1e2b; border: 1px solid var(--border);
+      border-radius: 18px; width: 100%; max-width: 400px; padding: 20px;
+      transform: translateY(20px); transition: 0.2s;
+    }
+    .overlay.show .modal { transform: translateY(0); }
+    .modal-title { font-size: 1.08rem; font-weight: 700; margin-bottom: 5px; }
+    .modal-msg { color: var(--muted); font-size: 0.86rem; margin-bottom: 13px; }
+    .modal-link {
+      background: #0f1219; border: 1px solid var(--border); border-radius: 12px;
+      padding: 11px; font-family: ui-monospace, monospace; font-size: 0.74rem;
+      word-break: break-all; color: var(--green); margin-bottom: 14px; user-select: all;
+    }
+    .modal-btns { display: flex; gap: 9px; }
+    .btn {
+      flex: 1; padding: 12px; border-radius: 11px; font-weight: 600;
+      font-size: 0.88rem; border: none; cursor: pointer;
+    }
+    .btn-copy { background: linear-gradient(135deg, #5b8def, #4a6fd4); color: #fff; }
+    .btn-close { background: #2a2f3d; color: var(--text); }
+    .toast {
+      position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(18px);
+      background: var(--green); color: #064e3b; font-weight: 700;
+      padding: 11px 20px; border-radius: 999px; font-size: 0.86rem;
+      z-index: 200; opacity: 0; pointer-events: none; transition: 0.22s;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    footer {
+      text-align: center; padding: 18px 14px; color: var(--muted);
+      font-size: 0.78rem; border-top: 1px solid var(--border);
+      line-height: 1.7;
+    }
+    footer strong { color: var(--text); }
+    .empty { text-align: center; padding: 36px 16px; color: var(--muted); grid-column: 1/-1; }
+
+    .topbar { height:auto; min-height:74px; padding:16px 20px; gap:18px; flex-wrap:wrap; }
+    .brand { font-size:1.35rem; white-space:nowrap; }
+    .nav-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+    .nav-actions .tab, .refresh-btn { background:#1c2030; border:1px solid #2a2f3d; color:#e7eaf4; padding:12px 16px; border-radius:14px; font-size:.92rem; cursor:pointer; }
+    .nav-actions .tab.active { background:#252d46; border-color:#5b8def; box-shadow:none; }
+    .refresh-btn { font-weight:600; }
+    .hero { padding:28px 18px 20px; }
+    .hero h1 span { color:#8aa6ff; }
+    .hero p { max-width:620px; font-size:1rem; }
+    .stats { gap:28px; flex-wrap:wrap; }
+    .stat strong { font-size:1rem; color:#a5abc0; font-weight:600; }
+    .stat span { display:none; }
+    .section-note { color:var(--muted); margin:-3px 0 14px; }
+    .info-card { border:1px solid var(--border); border-radius:24px; padding:24px; margin:24px 0; }
+    .info-card h2 { font-size:1.5rem; margin-bottom:18px; }
+    .info-card p { font-size:1rem; line-height:1.65; margin:0 0 16px; }
+    .info-card p:last-child { margin-bottom:0; }
+    .warning-card { background:#25151c; border-color:#a63e51; }
+    .warning-card h2 { color:#ff8795; }
+    .credits-card { background:#171a25; }
+    .play-frame { width:100%; height:min(78vh,760px); min-height:420px; display:block; border:0; border-radius:12px; background:#05080a; }
+    @media(max-width:700px) {
+      .topbar { align-items:flex-start; padding:16px; }
+      .nav-actions { width:100%; gap:8px; }
+      .nav-actions .tab, .refresh-btn { padding:11px 13px; font-size:.9rem; }
+      .hero { padding-top:24px; }
+      .info-card { padding:20px; border-radius:20px; }
+      .info-card h2 { font-size:1.35rem; }
+      .info-card p { font-size:.95rem; }
+    }
+\n  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Nightfall <span>Arcade</span></div>
+  <nav class="nav-actions" aria-label="Main navigation">
+    <button class="tab active" data-tab="games">Games</button>
+    <button class="tab" data-tab="shooter">Shooter</button>
+    <button class="tab" data-tab="proxys">Proxys</button>
+    <button class="tab" data-tab="tos">TOS</button>
+    <button class="tab" data-tab="blacklist">Blacklist</button>
+    <button class="refresh-btn" id="refresh-page" type="button">↻ Refresh</button>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>Nightfall <span>Arcade</span></h1>
+  <p>Built-in games, horror, shooters, and classic arcade games.</p>
+  <div class="stats">
+    <div class="stat"><strong>BUILT-IN GAMES</strong><span>Ready to play</span></div>
+    <div class="stat"><strong>NO GAME HOST SITES</strong><span>Local games</span></div>
+  </div>
+</section>
+
+<div class="wrap">
+
+  <!-- GAMES -->
+  <section class="section active" id="tab-games">
+    <div class="sec-title">🎮 Quick Games</div>
+    <div class="cats" id="cats">
+      <button class="cat active" data-cat="all">All</button>
+      <button class="cat" data-cat="shooter">Shooters</button>
+      <button class="cat" data-cat="horror">Horror</button>
+      <button class="cat" data-cat="arcade">Arcade</button>
+      <button class="cat" data-cat="adventure">Adventure</button>
+    </div>
+    <div class="ggrid" id="game-grid"></div>
+    <div class="play-area" id="play-area">
+      <div class="play-head">
+        <h3 id="play-title">Game</h3>
+        <button class="xbtn" onclick="closePlay()">✕</button>
+      </div>
+      <div id="controls-screen" style="display:none;text-align:center;padding:24px 16px;background:#0f1219;border-radius:12px;margin-bottom:12px">
+        <div id="controls-text" style="color:#e2e8f0;font-size:0.95rem;line-height:1.7;margin-bottom:16px"></div>
+        <button id="start-game-btn" style="background:linear-gradient(135deg,#5b8def,#4a6fd4);color:#fff;border:none;padding:12px 28px;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer">Start Game</button>
+      </div>
+      <canvas id="gameCanvas" width="480" height="540" style="display:block;margin:0 auto;background:#0a0c12;border-radius:10px;max-width:100%"></canvas>
+      <div class="controls" id="game-controls" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <section class="section" id="tab-shooter">
+    <div class="sec-title">🔫 Shooter Games</div>
+    <p class="section-note">Choose a shooter below, then press Start.</p>
+    <div class="ggrid" id="shooter-grid"></div>
+  </section>
+
+  <section class="info-card warning-card">
+    <h2>⚠️ Quick warning</h2>
+    <p>Most multiplayer games may not work, so single-player is recommended. Some games can also make your computer/PC lag.</p>
+  </section>
+  <section class="info-card credits-card">
+    <h2>Credits</h2>
+    <p><strong>Owner:</strong> Ethan</p>
+    <p><strong>Ideas from:</strong> Josh and Stryker</p>
+    <p><strong>Best admins / co-owners / elite admins:</strong> Josh and Stryker</p>
+    <p>Also thanks to Grok, ChatGPT, and DeepSeek for helping!</p>
+  </section>
+
+  <!-- PROXYS -->
+  <section class="section" id="tab-proxys">
+    <div class="sec-title">🔗 Working Proxys</div>
+    <p style="color:#8b91a8;font-size:0.88rem;margin:-4px 0 14px;line-height:1.5">Some links may stop working at any time. These are third-party links; use them responsibly and follow your school or network rules.</p>
+    <div class="search-wrap">
+      <input type="text" id="search" placeholder="Search proxys..." oninput="filterProxys()" />
+    </div>
+    <div class="pgrid" id="proxy-grid"></div>
+  </section>
+
+
+  <!-- BLACKLIST -->
+  <section class="section" id="tab-blacklist">
+    <div class="sec-title">🚫 Blacklist</div>
+    <div class="tos-box">
+      <p style="margin-bottom:14px;color:#8b91a8">These people are not allowed. Do not let them on the site.</p>
+      <div style="background:#1a1e2b;border:1px solid #2a2f3d;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <div>
+          <div style="font-weight:700;font-size:1.05rem;color:#f0f2f8">David Gentry</div>
+          <div style="font-size:0.8rem;color:#ef4444;margin-top:3px">Status: BANNED</div>
+        </div>
+        <div style="background:rgba(239,68,68,0.15);color:#ef4444;font-size:0.72rem;font-weight:700;padding:5px 12px;border-radius:999px">BLACKLISTED</div>
+      </div>
+      <p style="font-size:0.82rem;color:#8b91a8;margin-top:16px">More names can be added later.</p>
+    </div>
+  </section>
+
+  <!-- TOS -->
+  <section class="section" id="tab-tos">
+    <div class="sec-title">📜 Terms of Service</div>
+    <div class="tos-box">
+      <h3>1. Acceptance</h3>
+      <p>By using this site you agree to these terms. If you do not agree, do not use the site.</p>
+      <h3>2. Educational / Personal Use</h3>
+      <p>This page is provided for personal and educational purposes only. You are responsible for how you use any links.</p>
+      <h3>3. No Warranty</h3>
+      <p>Links and games are provided “as is”. They may stop working at any time. We do not guarantee uptime or content of third-party sites.</p>
+      <h3>4. User Responsibility</h3>
+      <ul>
+        <li>You must follow your school / network rules.</li>
+        <li>Do not use this site for anything illegal.</li>
+        <li>Do not attempt to harm other systems or users.</li>
+      </ul>
+      <h3>5. Third-Party Content</h3>
+      <p>Most games and proxys are hosted by other people. We are not responsible for what those sites contain.</p>
+      <h3>6. Changes</h3>
+      <p>These terms can be updated at any time. Continued use means you accept the new terms.</p>
+    </div>
+  </section>
+</div>
+
+<footer>Nightfall Arcade • Built-in games • Proxy links may change or stop working.</footer>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title" id="m-title">Name</div>
+    <div class="modal-msg">This link often gets stuck on “Redirecting…”. <strong>Copy it and paste into a new browser tab.</strong></div>
+    <div class="modal-link" id="m-link"></div>
+    <div class="modal-btns">
+      <button class="btn btn-copy" id="copy-btn" onclick="copyLink()">Copy Link</button>
+      <button class="btn btn-close" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast">Link copied!</div>
+
+<script>
+const proxys = [
+  { name: "Axiom", url: "https://cdn.statically.io/gh/Onex558/p2p-svg-3@main/axiomsvg5-axiomsvg3-2001.svg" },
+  { name: "Bull-33", url: "https://s3.amazonaws.com/bullpxbk/index.svg" },
+  { name: "Calculator (dogeub)", url: "https://calculator.rdt2.co/" },
+  { name: "Catclass", url: "https://esm.sh/gh/task4z/classroom-15x@665f01e/images/40150d34c8/logo.svg" },
+  { name: "DayDream X", url: "https://raw.esm.sh/gh/TwiLabs/math@3775f24/dist/index.svg" },
+  { name: "Dogeub (Instructure)", url: "https://storage.googleapis.com/instructure/index.html" },
+  { name: "Fern", url: "https://deaganfern.s3.amazonaws.com/index.html" },
+  { name: "Froggy's Arcade", url: "https://angel-johnny-vincent.dr8.ca/" },
+  { name: "GN-Math", url: "http://cdn.inksoft.com/images/clipart/svg/2570/designer2103988394847715328under/gnmath05839.svg" },
+  { name: "Helium", url: "https://esm.sh/gh/1sunw/helium-s@8c20032/helium.html" },
+  { name: "Jordan's Math", url: "https://jordansmathwork-v4-a89ux.kinsta.page/" },
+  { name: "Learning Hub", url: "https://learning.engineering.english.science.geography.elmwoodhardcider.ca/" },
+  { name: "Lunar", url: "https://friends.tabulasync.com/" },
+  { name: "Mathtools (dogeub)", url: "https://mathtools.rdt2.co/" },
+  { name: "Mizumath", url: "https://cdn.jsdelivr.net/gh/dorianhagar506-coder/mizu--lrq2df@main/mizu-4-aqng.svg" },
+  { name: "Nebula", url: "https://latvian-bull.rigaprecast.com.au/en_US/" },
+  { name: "Nebulios Mini", url: "https://cdn.jsdelivr.net/gh/Nebuli-OS/Nebuli-OS.github.io@latest/assets/mini/index.svg" },
+  { name: "Niche / Calculus", url: "https://cdn.jsdelivr.net/gh/algebra2day/calculus@main/svg/onefile.svg" },
+  { name: "OpenProcessing", url: "https://openprocessing.org/join" },
+  { name: "Petezah v2", url: "https://cdn.jsdelivr.net/gh/lyra-proxy/Pete-learning@main/index.svg" },
+  { name: "Platinum", url: "http://programming.science.geometry.library.math.jobvn.com" },
+  { name: "Quiet Birch", url: "https://s3.amazonaws.com/quietbirchstudy/index.html" },
+  { name: "Selenite", url: "https://bullrules.doris-safety.com/" },
+  { name: "Space", url: "https://matter.night.isroot.in/" },
+  { name: "Strawberry", url: "https://s3.amazonaws.com/strawberrii/index.svg" },
+  { name: "Study Hub", url: "https://cipher.tabulasync.com/" },
+  { name: "Truffled", url: "https://snoopylovestruffle.getinspiredflight.com/" },
+  { name: "Tungtung Proxy", url: "https://s3.us-east-1.amazonaws.com/tungnotes/index.html" },
+  { name: "Utopia", url: "https://s3.amazonaws.com/utopiaweb/index.html" },
+  { name: "Velara", url: "https://chem-test-tomorrow-im-cooked.cravat-club.com/" }
+].sort(function(a,b){ return a.name.localeCompare(b.name); });
+
+const games = [
+  { name: "Tunnel FPS", cat: "shooter", emoji: "🔫", desc: "First-person tunnel shooter", type: "local", id: "tunnel" },
+  { name: "Dark Corridor", cat: "horror", emoji: "👁️", desc: "First-person horror escape", type: "local", id: "corridor" },
+  { name: "Arena Shooter", cat: "shooter", emoji: "💥", desc: "Clear the arena", type: "local", id: "arena" },
+  { name: "Room Clear", cat: "shooter", emoji: "🎯", desc: "Eliminate all targets", type: "local", id: "room" },
+  { name: "Shadow Hall", cat: "horror", emoji: "🌀", desc: "Find the exit in the dark", type: "local", id: "hall" },
+  { name: "Void Run", cat: "arcade", emoji: "🌌", desc: "3D-style endless run", type: "local", id: "voidrun" },
+  { name: "Outpost", cat: "adventure", emoji: "🛰️", desc: "Survive the outpost", type: "local", id: "outpost" },
+  { name: "Night Ops", cat: "shooter", emoji: "🌑", desc: "Night target practice", type: "local", id: "nightops" },
+  { name: "Deadzone: Outbreak", cat: "shooter", emoji: "🧟", desc: "Survive infected waves in a first-person shooter", type: "local", id: "deadzone" }
+];
+
+// TABS
+function showTab(name) {
+  document.querySelectorAll(".tab").forEach(function(t){ t.classList.toggle("active", t.dataset.tab === name); });
+  document.querySelectorAll(".section").forEach(function(s){ s.classList.toggle("active", s.id === "tab-" + name); });
+  if (name === "shooter") renderShooterGames();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll(".tab").forEach(function(btn) {
+  btn.addEventListener("click", function(){ showTab(btn.dataset.tab); });
+});
+document.getElementById("refresh-page").addEventListener("click", function(){ window.location.reload(); });
+
+// PROXYS
+var pgrid = document.getElementById("proxy-grid");
+function renderProxys(list) {
+  pgrid.innerHTML = "";
+  if (!list.length) {
+    pgrid.innerHTML = '<div class="empty">No matches</div>';
+    return;
+  }
+  list.forEach(function(p) {
+    var el = document.createElement("div");
+    el.className = "pcard";
+    el.onclick = function() { openModal(p.name, p.url); };
+    el.innerHTML =
+      '<div class="pcard-top"><div class="pcard-name">' + p.name + '</div>' +
+      '<span class="badge-w">Working</span></div>' +
+      '<div class="pcard-url">' + p.url.replace(/^https?:\/\//, "") + '</div>' +
+      '<div class="pcard-btn">Get Link →</div>';
+    pgrid.appendChild(el);
+  });
+}
+function filterProxys() {
+  var q = document.getElementById("search").value.toLowerCase().trim();
+  renderProxys(proxys.filter(function(p) {
+    return p.name.toLowerCase().indexOf(q) !== -1 || p.url.toLowerCase().indexOf(q) !== -1;
+  }));
+}
+renderProxys(proxys);
+document.getElementById("pcount").textContent = proxys.length;
+
+// GAMES
+var ggrid = document.getElementById("game-grid");
+var curCat = "all";
+document.querySelectorAll(".cat").forEach(function(c) {
+  c.onclick = function() {
+    document.querySelectorAll(".cat").forEach(function(x){ x.classList.remove("active"); });
+    c.classList.add("active");
+    curCat = c.dataset.cat;
+    renderGames();
+  };
+});
+function renderGames() {
+  ggrid.innerHTML = "";
+  var list = curCat === "all" ? games : games.filter(function(g){ return g.cat === curCat; });
+  list.forEach(function(g) {
+    var el = document.createElement("div");
+    el.className = "gcard";
+    el.onclick = function() {
+      if (g.type === "local") startLocal(g.id, g.name);
+      else openModal(g.name, g.url);
+    };
+    el.innerHTML =
+      '<div class="gthumb">' + g.emoji + '</div>' +
+      "<h3>" + g.name + "</h3>" +
+      "<p>" + g.desc + "</p>";
+    ggrid.appendChild(el);
+  });
+}
+renderGames();
+function renderShooterGames() {
+  var sg = document.getElementById("shooter-grid");
+  if (!sg) return;
+  sg.innerHTML = "";
+  games.filter(function(g){ return g.cat === "shooter"; }).forEach(function(g) {
+    var el = document.createElement("div");
+    el.className = "gcard";
+    el.innerHTML = '<div class="gthumb">' + g.emoji + '</div><h3>' + g.name + '</h3><p>' + g.desc + '</p>';
+    el.addEventListener("click", function(){ startLocal(g.id, g.name); });
+    sg.appendChild(el);
+  });
+}
+
+// MODAL
+var curUrl = "";
+function openModal(name, url) {
+  curUrl = url;
+  document.getElementById("m-title").textContent = name;
+  document.getElementById("m-link").textContent = url;
+  document.getElementById("overlay").classList.add("show");
+  document.getElementById("copy-btn").textContent = "Copy Link";
+}
+function closeModal(e) {
+  if (e && e.target !== document.getElementById("overlay")) return;
+  document.getElementById("overlay").classList.remove("show");
+}
+function copyLink() {
+  function showCopied() {
+    document.getElementById("copy-btn").textContent = "Copied!";
+    var t = document.getElementById("toast");
+    t.classList.add("show");
+    setTimeout(function(){ t.classList.remove("show"); }, 1600);
+    setTimeout(function(){ document.getElementById("copy-btn").textContent = "Copy Link"; }, 1400);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(curUrl).then(showCopied).catch(function(){ fallbackCopy(); });
+  } else fallbackCopy();
+  function fallbackCopy() {
+    var temp = document.createElement("textarea");
+    temp.value = curUrl; temp.style.position = "fixed"; temp.style.opacity = "0";
+    document.body.appendChild(temp); temp.select();
+    try { if (document.execCommand("copy")) showCopied(); else window.prompt("Copy this link:", curUrl); }
+    catch(e) { window.prompt("Copy this link:", curUrl); }
+    temp.remove();
+  }
+}
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape") closeModal();
+});
+
+const DEADZONE_HTML = new TextDecoder().decode(Uint8Array.from(atob("PCFkb2N0eXBlIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4KPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCxpbml0aWFsLXNjYWxlPTEiPgo8dGl0bGU+REVBRFpPTkUg4oCUIFN1cnZpdmFsPC90aXRsZT4KPHN0eWxlPgo6cm9vdHstLWxpbWU6I2M5ZmY2NzstLXJlZDojZmY1MTUxOy0tcGFuZWw6cmdiYSg1LDksMTIsLjgyKX0KKntib3gtc2l6aW5nOmJvcmRlci1ib3h9aHRtbCxib2R5e21hcmdpbjowO3dpZHRoOjEwMCU7aGVpZ2h0OjEwMCU7b3ZlcmZsb3c6aGlkZGVuO2JhY2tncm91bmQ6IzA1MDgwYTtjb2xvcjojZWVmM2VkO2ZvbnQtZmFtaWx5OnVpLW1vbm9zcGFjZSxTRk1vbm8tUmVndWxhcixDb25zb2xhcyxtb25vc3BhY2V9CiNnYW1le2Rpc3BsYXk6YmxvY2s7d2lkdGg6MTAwdnc7aGVpZ2h0OjEwMHZoO2JhY2tncm91bmQ6IzA4MGIwZTtpbWFnZS1yZW5kZXJpbmc6cGl4ZWxhdGVkO2N1cnNvcjpjcm9zc2hhaXJ9CiN2aWduZXR0ZXtwb3NpdGlvbjpmaXhlZDtpbnNldDowO3BvaW50ZXItZXZlbnRzOm5vbmU7YmFja2dyb3VuZDpyYWRpYWwtZ3JhZGllbnQoZWxsaXBzZSBhdCBjZW50ZXIsdHJhbnNwYXJlbnQgMzUlLHJnYmEoMCwwLDAsLjQ1KSAxMDAlKX0KI3RvcHtwb3NpdGlvbjpmaXhlZDt0b3A6MTRweDtsZWZ0OjE2cHg7cmlnaHQ6MTZweDtkaXNwbGF5OmZsZXg7anVzdGlmeS1jb250ZW50OnNwYWNlLWJldHdlZW47Z2FwOjEycHg7cG9pbnRlci1ldmVudHM6bm9uZTt0ZXh0LXNoYWRvdzowIDJweCA1cHggIzAwMH0KLmJyYW5ke2ZvbnQtd2VpZ2h0OjkwMDtsZXR0ZXItc3BhY2luZzouMmVtO2NvbG9yOnZhcigtLWxpbWUpO2ZvbnQtc2l6ZTpjbGFtcCgxM3B4LDJ2dywyMHB4KX0uc3Vie2ZvbnQtc2l6ZToxMHB4O2xldHRlci1zcGFjaW5nOi4xMmVtO2NvbG9yOiM5YWE3YTQ7bWFyZ2luLXRvcDo0cHh9Ci5zdGF0c3tkaXNwbGF5OmZsZXg7Z2FwOjhweDtmbGV4LXdyYXA6d3JhcDtqdXN0aWZ5LWNvbnRlbnQ6ZmxleC1lbmR9LmNoaXB7YmFja2dyb3VuZDp2YXIoLS1wYW5lbCk7Ym9yZGVyOjFweCBzb2xpZCAjMzk0NDNmO3BhZGRpbmc6OHB4IDExcHg7bWluLXdpZHRoOjc1cHh9LmNoaXAgc21hbGx7ZGlzcGxheTpibG9jaztjb2xvcjojOThhNTlmO2ZvbnQtc2l6ZTo5cHg7bGV0dGVyLXNwYWNpbmc6LjEyZW19LmNoaXAgYntmb250LXNpemU6MThweH0KI2JvdHRvbXtwb3NpdGlvbjpmaXhlZDtib3R0b206MTRweDtsZWZ0OjE2cHg7cmlnaHQ6MTZweDtkaXNwbGF5OmZsZXg7YWxpZ24taXRlbXM6ZW5kO2p1c3RpZnktY29udGVudDpzcGFjZS1iZXR3ZWVuO2dhcDoxMHB4O3BvaW50ZXItZXZlbnRzOm5vbmV9LnN0YXR1c3tiYWNrZ3JvdW5kOnZhcigtLXBhbmVsKTtib3JkZXI6MXB4IHNvbGlkICMzOTQ0M2Y7cGFkZGluZzo5cHggMTJweDttaW4td2lkdGg6MTIwcHh9LnN0YXR1cyBzbWFsbHtmb250LXNpemU6OXB4O2NvbG9yOiNhMGFhYTU7ZGlzcGxheTpibG9jaztsZXR0ZXItc3BhY2luZzouMTJlbX0uc3RhdHVzIGJ7Zm9udC1zaXplOjIycHh9LmhlYWx0aGJhcntoZWlnaHQ6NXB4O2JhY2tncm91bmQ6IzM0MjIyMjttYXJnaW4tdG9wOjVweDt3aWR0aDoxMzBweH0uaGVhbHRoYmFyIHNwYW57ZGlzcGxheTpibG9jaztoZWlnaHQ6MTAwJTt3aWR0aDoxMDAlO2JhY2tncm91bmQ6dmFyKC0tcmVkKTt0cmFuc2l0aW9uOndpZHRoIC4xNXN9LmFtbW97dGV4dC1hbGlnbjpyaWdodH0uYW1tbyBie2NvbG9yOnZhcigtLWxpbWUpO2ZvbnQtc2l6ZToyNHB4fS5oaW50e2NvbG9yOiNiN2MxYmI7Zm9udC1zaXplOjEwcHg7dGV4dC1hbGlnbjpjZW50ZXI7bGluZS1oZWlnaHQ6MS43O3RleHQtc2hhZG93OjAgMnB4IDVweCAjMDAwfQojb3ZlcmxheXtwb3NpdGlvbjpmaXhlZDtpbnNldDowO2Rpc3BsYXk6ZmxleDthbGlnbi1pdGVtczpjZW50ZXI7anVzdGlmeS1jb250ZW50OmNlbnRlcjtiYWNrZ3JvdW5kOnJnYmEoMiw1LDcsLjc2KTtiYWNrZHJvcC1maWx0ZXI6Ymx1cig1cHgpO3BhZGRpbmc6MjBweH0KLmNhcmR7d2lkdGg6bWluKDU1MHB4LDEwMCUpO2JhY2tncm91bmQ6bGluZWFyLWdyYWRpZW50KDE0NWRlZyxyZ2JhKDIwLDI5LDI5LC45OCkscmdiYSg3LDEyLDE1LC45OCkpO2JvcmRlcjoxcHggc29saWQgIzU4NjY1ZDtib3gtc2hhZG93OjAgMjBweCA5MHB4ICMwMDA7cGFkZGluZzpjbGFtcCgyMnB4LDV2dyw0MnB4KTtwb3NpdGlvbjpyZWxhdGl2ZX0KLmtpY2tlcntjb2xvcjp2YXIoLS1saW1lKTtmb250LXNpemU6MTBweDtsZXR0ZXItc3BhY2luZzouMjhlbX0uY2FyZCBoMXtmb250LXNpemU6Y2xhbXAoMzRweCw4dncsNjJweCk7bGluZS1oZWlnaHQ6Ljk1O2xldHRlci1zcGFjaW5nOi0uMDZlbTttYXJnaW46MTRweCAwfS5jYXJkIHB7Y29sb3I6I2IyYmViNjtsaW5lLWhlaWdodDoxLjY7Zm9udC1zaXplOjEzcHh9LnJ1bGV7aGVpZ2h0OjFweDtiYWNrZ3JvdW5kOiMzNTQwMzk7bWFyZ2luOjIycHggMH0KYnV0dG9ue2ZvbnQ6aW5oZXJpdDtmb250LXdlaWdodDo5MDA7bGV0dGVyLXNwYWNpbmc6LjEyZW07Y29sb3I6IzA3MTAwNjtiYWNrZ3JvdW5kOnZhcigtLWxpbWUpO2JvcmRlcjowO3BhZGRpbmc6MTRweCAyMHB4O2N1cnNvcjpwb2ludGVyO3dpZHRoOjEwMCU7dHJhbnNpdGlvbjp0cmFuc2Zvcm0gLjEycyxmaWx0ZXIgLjEyc31idXR0b246aG92ZXJ7ZmlsdGVyOmJyaWdodG5lc3MoMS4xKTt0cmFuc2Zvcm06dHJhbnNsYXRlWSgtMXB4KX1idXR0b24uc2Vjb25kYXJ5e2JhY2tncm91bmQ6dHJhbnNwYXJlbnQ7Y29sb3I6I2Q5ZTFkYTtib3JkZXI6MXB4IHNvbGlkICM1MzYwNTc7bWFyZ2luLXRvcDo5cHh9Ci5rZXlze2Rpc3BsYXk6Z3JpZDtncmlkLXRlbXBsYXRlLWNvbHVtbnM6cmVwZWF0KDIsMWZyKTtnYXA6OHB4O21hcmdpbi10b3A6MTZweH0ua2V5e2JvcmRlcjoxcHggc29saWQgIzMwM2MzNTtwYWRkaW5nOjlweDtjb2xvcjojYjVjMGI3O2ZvbnQtc2l6ZToxMHB4fS5rZXkgYntjb2xvcjojZmZmfQojdG9hc3R7cG9zaXRpb246Zml4ZWQ7dG9wOjI1JTtsZWZ0OjUwJTt0cmFuc2Zvcm06dHJhbnNsYXRlWCgtNTAlKTtjb2xvcjp2YXIoLS1saW1lKTtmb250LXNpemU6MTJweDtsZXR0ZXItc3BhY2luZzouMThlbTt0ZXh0LXNoYWRvdzowIDJweCA2cHggIzAwMDtwb2ludGVyLWV2ZW50czpub25lfQpAbWVkaWEobWF4LXdpZHRoOjYwMHB4KXsuY2hpcHttaW4td2lkdGg6NThweDtwYWRkaW5nOjZweH0uY2hpcCBie2ZvbnQtc2l6ZToxNXB4fS5oaW50e2Rpc3BsYXk6bm9uZX0uc3RhdHVze21pbi13aWR0aDo5NXB4O3BhZGRpbmc6N3B4fS5oZWFsdGhiYXJ7d2lkdGg6OTVweH0jYm90dG9te2JvdHRvbToxMHB4O2xlZnQ6OXB4O3JpZ2h0OjlweH0jdG9we3RvcDo5cHg7bGVmdDo5cHg7cmlnaHQ6OXB4fX0KPC9zdHlsZT4KPC9oZWFkPgo8Ym9keT4KPGNhbnZhcyBpZD0iZ2FtZSI+PC9jYW52YXM+PGRpdiBpZD0idmlnbmV0dGUiPjwvZGl2Pgo8ZGl2IGlkPSJ0b3AiPjxkaXY+PGRpdiBjbGFzcz0iYnJhbmQiPkRFQURaT05FPHNwYW4gc3R5bGU9ImNvbG9yOiNmMmY1ZWYiPiAvIDwvc3Bhbj5PVVRCUkVBSzwvZGl2PjxkaXYgY2xhc3M9InN1YiI+U0lOR0xFLVBMQVlFUiBTVVJWSVZBTCAvLyBCVUlMRCAwLjk8L2Rpdj48L2Rpdj48ZGl2IGNsYXNzPSJzdGF0cyI+PGRpdiBjbGFzcz0iY2hpcCI+PHNtYWxsPldBVkU8L3NtYWxsPjxiIGlkPSJ3YXZlIj4wMTwvYj48L2Rpdj48ZGl2IGNsYXNzPSJjaGlwIj48c21hbGw+S0lMTFM8L3NtYWxsPjxiIGlkPSJraWxscyI+MDA8L2I+PC9kaXY+PGRpdiBjbGFzcz0iY2hpcCI+PHNtYWxsPlNDT1JFPC9zbWFsbD48YiBpZD0ic2NvcmUiPjAwMDA8L2I+PC9kaXY+PC9kaXY+PC9kaXY+CjxkaXYgaWQ9ImJvdHRvbSI+PGRpdiBjbGFzcz0ic3RhdHVzIj48c21hbGw+VklUQUxTPC9zbWFsbD48YiBpZD0iaHAiPjEwMDwvYj48ZGl2IGNsYXNzPSJoZWFsdGhiYXIiPjxzcGFuIGlkPSJocGJhciI+PC9zcGFuPjwvZGl2PjwvZGl2PjxkaXYgY2xhc3M9ImhpbnQiPldBU0QgTU9WRSDCtyBNT1VTRSBBSU0gwrcgQ0xJQ0sgRklSRTxicj5SIFJFTE9BRCDCtyBTSElGVCBTUFJJTlQgwrcgRVNDIFBBVVNFPC9kaXY+PGRpdiBjbGFzcz0ic3RhdHVzIGFtbW8iPjxzbWFsbD5SSUZMRSAvIDlNTTwvc21hbGw+PGIgaWQ9ImFtbW8iPjEyIC8gNzI8L2I+PGRpdiBjbGFzcz0ic3ViIiBpZD0id2VhcG9uc3RhdGUiPlJFQURZPC9kaXY+PC9kaXY+PC9kaXY+CjxkaXYgaWQ9InRvYXN0Ij48L2Rpdj4KPGRpdiBpZD0ib3ZlcmxheSI+PGRpdiBjbGFzcz0iY2FyZCI+PGRpdiBjbGFzcz0ia2lja2VyIj5OSUdIVCBTSElGVCAvLyBJTkNJREVOVCAwMDE8L2Rpdj48aDEgaWQ9InRpdGxlIj5USEU8YnI+REVBRFpPTkU8L2gxPjxwIGlkPSJkZXNjIj5UaGUgZXZhY3VhdGlvbiBmYWlsZWQuIFRoZSBzdHJlZXRzIGFyZSBjcmF3bGluZy4gSG9sZCB5b3VyIGdyb3VuZCwgbWFuYWdlIHlvdXIgYW1tdW5pdGlvbiwgYW5kIHN1cnZpdmUgZWFjaCBpbmNvbWluZyB3YXZlLjwvcD48ZGl2IGNsYXNzPSJydWxlIj48L2Rpdj48YnV0dG9uIGlkPSJzdGFydCI+REVQTE9ZPC9idXR0b24+PGJ1dHRvbiBjbGFzcz0ic2Vjb25kYXJ5IiBpZD0iaG93Ij5DT05UUk9MUyAmIFNVUlZJVkFMIFRJUFM8L2J1dHRvbj48ZGl2IGNsYXNzPSJrZXlzIiBpZD0ia2V5cyIgaGlkZGVuPjxkaXYgY2xhc3M9ImtleSI+PGI+VyBBIFMgRDwvYj4g4oCUIE1vdmU8L2Rpdj48ZGl2IGNsYXNzPSJrZXkiPjxiPk1PVVNFPC9iPiDigJQgTG9vayAvIGFpbTwvZGl2PjxkaXYgY2xhc3M9ImtleSI+PGI+TEVGVCBDTElDSzwvYj4g4oCUIEZpcmU8L2Rpdj48ZGl2IGNsYXNzPSJrZXkiPjxiPlI8L2I+IOKAlCBSZWxvYWQ8L2Rpdj48ZGl2IGNsYXNzPSJrZXkiPjxiPlNISUZUPC9iPiDigJQgU3ByaW50PC9kaXY+PGRpdiBjbGFzcz0ia2V5Ij48Yj5FU0M8L2I+IOKAlCBQYXVzZTwvZGl2PjwvZGl2PjwvZGl2PjwvZGl2Pgo8c2NyaXB0PgooKCk9PnsKY29uc3QgY2FudmFzPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdnYW1lJyksY3R4PWNhbnZhcy5nZXRDb250ZXh0KCcyZCcse2FscGhhOmZhbHNlfSk7CmNvbnN0ICQ9aWQ9PmRvY3VtZW50LmdldEVsZW1lbnRCeUlkKGlkKTsKbGV0IFc9aW5uZXJXaWR0aCxIPWlubmVySGVpZ2h0LGRwcj1NYXRoLm1pbihkZXZpY2VQaXhlbFJhdGlvfHwxLDEuNSk7CmZ1bmN0aW9uIHJlc2l6ZSgpe1c9aW5uZXJXaWR0aDtIPWlubmVySGVpZ2h0O2NhbnZhcy53aWR0aD1NYXRoLmZsb29yKFcqZHByKTtjYW52YXMuaGVpZ2h0PU1hdGguZmxvb3IoSCpkcHIpO2NhbnZhcy5zdHlsZS53aWR0aD1XKydweCc7Y2FudmFzLnN0eWxlLmhlaWdodD1IKydweCc7Y3R4LnNldFRyYW5zZm9ybShkcHIsMCwwLGRwciwwLDApfQphZGRFdmVudExpc3RlbmVyKCdyZXNpemUnLHJlc2l6ZSk7cmVzaXplKCk7CmNvbnN0IG1hcD1bCiIxMTExMTExMTExMTExMTExIiwKIjEwMDAwMDAwMDAwMDAwMDEiLAoiMTAyMDAwMTAwMDIwMDAwMSIsCiIxMDAwMDAxMDAwMDAwMDAxIiwKIjEwMDAwMDAwMDAwMDMwMDEiLAoiMTAwMTEwMDAwMDExMDAwMSIsCiIxMDAwMDAwMDAwMDAwMDAxIiwKIjEwMDAzMDAwMDAwMDIwMDEiLAoiMTAwMDAwMDAwMDAwMDAwMSIsCiIxMDAwMDAxMTAwMDAwMDAxIiwKIjEwMjAwMDAwMDAwMzAwMDEiLAoiMTAwMDAwMDAwMDAwMDAwMSIsCiIxMDAwMTEwMDAxMTAwMDAxIiwKIjEwMDAwMDAwMDAwMDAwMDEiLAoiMTAwMDAwMDAwMDAwMDAwMSIsCiIxMTExMTExMTExMTExMTExIgpdOwpjb25zdCB0aWxlPSh4LHkpPT57eD1NYXRoLmZsb29yKHgpO3k9TWF0aC5mbG9vcih5KTtyZXR1cm4gbWFwW3ldPy5beF18fCcxJ307CmNvbnN0IHNvbGlkPSh4LHkpPT50aWxlKHgseSk9PT0nMSc7CmNvbnN0IHBsYXllcj17eDoxLjcseToxLjcsYTouMSxocDoxMDAsYW1tbzoxMixyZXNlcnZlOjcyLGtpbGxzOjAsc2NvcmU6MCx3YXZlOjEscmVsb2FkaW5nOmZhbHNlLGRlYWQ6ZmFsc2V9OwpsZXQgem9tYmllcz1bXSxydW5uaW5nPWZhbHNlLHBhdXNlZD1mYWxzZSxsYXN0PTAsc3Bhd25DbG9jaz0wLHNob3RGbGFzaD0wLHJlY29pbD0wLHdhbGs9MCxodXJ0Rmxhc2g9MCx0b2FzdFRpbWVyPTAsdG9hc3RUZXh0PScnLGF1ZGlvPW51bGwsZmlyZUxvY2s9ZmFsc2U7CmNvbnN0IEZPVj1NYXRoLlBJLzIuODUsZGVwdGg9W107CmZ1bmN0aW9uIHNvdW5kKGZyZXE9OTAsZHVyPS4wNyx0eXBlPSdzcXVhcmUnLHZvbD0uMDUsc2xpZGU9LTMwKXt0cnl7aWYoIWF1ZGlvKWF1ZGlvPW5ldyh3aW5kb3cuQXVkaW9Db250ZXh0fHx3aW5kb3cud2Via2l0QXVkaW9Db250ZXh0KSgpO2lmKGF1ZGlvLnN0YXRlPT09J3N1c3BlbmRlZCcpYXVkaW8ucmVzdW1lKCk7Y29uc3Qgbz1hdWRpby5jcmVhdGVPc2NpbGxhdG9yKCksZz1hdWRpby5jcmVhdGVHYWluKCk7by50eXBlPXR5cGU7by5mcmVxdWVuY3kuc2V0VmFsdWVBdFRpbWUoZnJlcSxhdWRpby5jdXJyZW50VGltZSk7by5mcmVxdWVuY3kuZXhwb25lbnRpYWxSYW1wVG9WYWx1ZUF0VGltZShNYXRoLm1heCgyMCxmcmVxK3NsaWRlKSxhdWRpby5jdXJyZW50VGltZStkdXIpO2cuZ2Fpbi5zZXRWYWx1ZUF0VGltZSh2b2wsYXVkaW8uY3VycmVudFRpbWUpO2cuZ2Fpbi5leHBvbmVudGlhbFJhbXBUb1ZhbHVlQXRUaW1lKC4wMDEsYXVkaW8uY3VycmVudFRpbWUrZHVyKTtvLmNvbm5lY3QoZyk7Zy5jb25uZWN0KGF1ZGlvLmRlc3RpbmF0aW9uKTtvLnN0YXJ0KCk7by5zdG9wKGF1ZGlvLmN1cnJlbnRUaW1lK2R1cil9Y2F0Y2goZSl7fX0KZnVuY3Rpb24gbm9pc2UoKXt0cnl7aWYoIWF1ZGlvKWF1ZGlvPW5ldyh3aW5kb3cuQXVkaW9Db250ZXh0fHx3aW5kb3cud2Via2l0QXVkaW9Db250ZXh0KSgpO2xldCBuPWF1ZGlvLmNyZWF0ZUJ1ZmZlclNvdXJjZSgpLGI9YXVkaW8uY3JlYXRlQnVmZmVyKDEsYXVkaW8uc2FtcGxlUmF0ZSouMTIsYXVkaW8uc2FtcGxlUmF0ZSksZD1iLmdldENoYW5uZWxEYXRhKDApO2ZvcihsZXQgaT0wO2k8ZC5sZW5ndGg7aSsrKWRbaV09KE1hdGgucmFuZG9tKCkqMi0xKSpNYXRoLnBvdygxLWkvZC5sZW5ndGgsMyk7bi5idWZmZXI9YjtsZXQgZz1hdWRpby5jcmVhdGVHYWluKCk7Zy5nYWluLnZhbHVlPS4xMjtuLmNvbm5lY3QoZyk7Zy5jb25uZWN0KGF1ZGlvLmRlc3RpbmF0aW9uKTtuLnN0YXJ0KCl9Y2F0Y2goZSl7fX0KZnVuY3Rpb24gc2F5KHMpe3RvYXN0VGV4dD1zOyQoJ3RvYXN0JykudGV4dENvbnRlbnQ9czt0b2FzdFRpbWVyPTEuN30KZnVuY3Rpb24gbmV3V2F2ZSgpe3BsYXllci53YXZlKys7c3Bhd25DbG9jaz0uNTtzYXkoJ1dBVkUgJytTdHJpbmcocGxheWVyLndhdmUpLnBhZFN0YXJ0KDIsJzAnKSsnIElOQ09NSU5HJyk7cGxheWVyLnJlc2VydmU9TWF0aC5taW4oMTgwLHBsYXllci5yZXNlcnZlKzE4KTtwbGF5ZXIuYW1tbz1NYXRoLm1pbigxMixwbGF5ZXIuYW1tbys0KTt1cGRhdGVIdWQoKX0KZnVuY3Rpb24gc3Bhd25ab21iaWUoKXtsZXQgc3BvdHM9W1sxMy40LDIuNV0sWzEyLjcsMTMuM10sWzIuMiwxMy40XSxbMTQsNy41XSxbNy44LDEzLjVdLFsxMy41LDEwLjVdLFszLjUsNy41XSxbOS41LDIuMl1dO2xldCBzPXNwb3RzW01hdGguZmxvb3IoTWF0aC5yYW5kb20oKSpzcG90cy5sZW5ndGgpXTtpZihNYXRoLmh5cG90KHNbMF0tcGxheWVyLngsc1sxXS1wbGF5ZXIueSk8NClzPXNwb3RzWyhNYXRoLmZsb29yKE1hdGgucmFuZG9tKCkqc3BvdHMubGVuZ3RoKSszKSVzcG90cy5sZW5ndGhdO3pvbWJpZXMucHVzaCh7eDpzWzBdLHk6c1sxXSxocDoyK01hdGguZmxvb3IocGxheWVyLndhdmUvMyksc3BlZWQ6LjQ4K01hdGgucmFuZG9tKCkqLjEzLGF0dGFjazowLGhpdDowLHBoYXNlOk1hdGgucmFuZG9tKCkqNixhbGl2ZTp0cnVlfSk7fQpmdW5jdGlvbiBzdGFydCgpe09iamVjdC5hc3NpZ24ocGxheWVyLHt4OjEuNyx5OjEuNyxhOi4xLGhwOjEwMCxhbW1vOjEyLHJlc2VydmU6NzIsa2lsbHM6MCxzY29yZTowLHdhdmU6MSxyZWxvYWRpbmc6ZmFsc2UsZGVhZDpmYWxzZX0pO3pvbWJpZXM9W107Zm9yKGxldCBpPTA7aTw0O2krKylzcGF3blpvbWJpZSgpO3J1bm5pbmc9dHJ1ZTtwYXVzZWQ9ZmFsc2U7JCgnb3ZlcmxheScpLnN0eWxlLmRpc3BsYXk9J25vbmUnO2NhbnZhcy5yZXF1ZXN0UG9pbnRlckxvY2s/LigpO2xhc3Q9cGVyZm9ybWFuY2Uubm93KCk7dXBkYXRlSHVkKCk7c291bmQoMTgwLC4xMywnc2F3dG9vdGgnLC4wNCwxNTApfQpmdW5jdGlvbiBlbmRHYW1lKCl7cnVubmluZz1mYWxzZTtwbGF5ZXIuZGVhZD10cnVlO2RvY3VtZW50LmV4aXRQb2ludGVyTG9jaz8uKCk7JCgndGl0bGUnKS5pbm5lckhUTUw9J1lPVTxicj5GRUxMJzskKCdkZXNjJykudGV4dENvbnRlbnQ9J1lvdSBzdXJ2aXZlZCB1bnRpbCB3YXZlICcrcGxheWVyLndhdmUrJyBhbmQgZWxpbWluYXRlZCAnK3BsYXllci5raWxscysnIGluZmVjdGVkLiBUaGUgb3V0YnJlYWsgaXMgc3RpbGwgc3ByZWFkaW5nLic7JCgnc3RhcnQnKS50ZXh0Q29udGVudD0nVFJZIEFHQUlOJzskKCdob3cnKS50ZXh0Q29udGVudD0nUkVUVVJOIFRPIE1FTlUnOyQoJ2tleXMnKS5oaWRkZW49dHJ1ZTskKCdvdmVybGF5Jykuc3R5bGUuZGlzcGxheT0nZmxleCd9CmZ1bmN0aW9uIHVwZGF0ZUh1ZCgpeyQoJ3dhdmUnKS50ZXh0Q29udGVudD1TdHJpbmcocGxheWVyLndhdmUpLnBhZFN0YXJ0KDIsJzAnKTskKCdraWxscycpLnRleHRDb250ZW50PVN0cmluZyhwbGF5ZXIua2lsbHMpLnBhZFN0YXJ0KDIsJzAnKTskKCdzY29yZScpLnRleHRDb250ZW50PVN0cmluZyhwbGF5ZXIuc2NvcmUpLnBhZFN0YXJ0KDQsJzAnKTskKCdocCcpLnRleHRDb250ZW50PU1hdGgubWF4KDAsTWF0aC5jZWlsKHBsYXllci5ocCkpOyQoJ2hwYmFyJykuc3R5bGUud2lkdGg9TWF0aC5tYXgoMCxwbGF5ZXIuaHApKyclJzskKCdhbW1vJykudGV4dENvbnRlbnQ9cGxheWVyLmFtbW8rJyAvICcrcGxheWVyLnJlc2VydmU7JCgnd2VhcG9uc3RhdGUnKS50ZXh0Q29udGVudD1wbGF5ZXIucmVsb2FkaW5nPydSRUxPQURJTkfigKYnOidSRUFEWSc7fQpmdW5jdGlvbiBjYW5Nb3ZlKHgseSl7cmV0dXJuICFzb2xpZCh4LS4xOCx5LS4xOCkmJiFzb2xpZCh4Ky4xOCx5LS4xOCkmJiFzb2xpZCh4LS4xOCx5Ky4xOCkmJiFzb2xpZCh4Ky4xOCx5Ky4xOCl9CmZ1bmN0aW9uIHJheShhbmdsZSl7bGV0IHNpbj1NYXRoLnNpbihhbmdsZSksY29zPU1hdGguY29zKGFuZ2xlKSxkaXN0PTA7d2hpbGUoZGlzdDwyMCl7ZGlzdCs9LjAyNTtsZXQgeD1wbGF5ZXIueCtjb3MqZGlzdCx5PXBsYXllci55K3NpbipkaXN0O2lmKHNvbGlkKHgseSkpcmV0dXJuIHtkaXN0LHNpZGU6KE1hdGguYWJzKCh4JTEpKTwuMDR8fE1hdGguYWJzKCh4JTEpLTEpPC4wNCk/MTowLHRleDp0aWxlKHgseSl9O31yZXR1cm4ge2Rpc3Q6MjAsc2lkZTowLHRleDonMSd9fQpmdW5jdGlvbiByZW5kZXJXb3JsZCgpe2xldCBza3k9Y3R4LmNyZWF0ZUxpbmVhckdyYWRpZW50KDAsMCwwLEgqLjU2KTtza3kuYWRkQ29sb3JTdG9wKDAsJyMxMTE5MWQnKTtza3kuYWRkQ29sb3JTdG9wKDEsJyM0NzUxNGEnKTtjdHguZmlsbFN0eWxlPXNreTtjdHguZmlsbFJlY3QoMCwwLFcsSCouNTUpO2xldCBmbG9vcj1jdHguY3JlYXRlTGluZWFyR3JhZGllbnQoMCxIKi40NSwwLEgpO2Zsb29yLmFkZENvbG9yU3RvcCgwLCcjMjUyYTI3Jyk7Zmxvb3IuYWRkQ29sb3JTdG9wKDEsJyMwOTBjMGQnKTtjdHguZmlsbFN0eWxlPWZsb29yO2N0eC5maWxsUmVjdCgwLEgqLjQ1LFcsSCouNTUpOwpjb25zdCByYXlzPU1hdGguY2VpbChXLzIpO2RlcHRoLmxlbmd0aD1yYXlzO2ZvcihsZXQgaT0wO2k8cmF5cztpKyspe2xldCBhPXBsYXllci5hLUZPVi8yKyhpL3JheXMpKkZPVixyPXJheShhKSxkaXN0PXIuZGlzdCpNYXRoLmNvcyhhLXBsYXllci5hKTtkZXB0aFtpXT1kaXN0O2xldCB3YWxsSD1NYXRoLm1pbihIKjEuNyxILyhkaXN0Ki44NikpLHRvcD1IKi41LXdhbGxIKi41O2xldCBzaGFkZT1NYXRoLm1heCgyNSwxNTAtZGlzdCoxMSkqKHIuc2lkZT8uNzI6MSk7bGV0IGNvbD1NYXRoLmZsb29yKHNoYWRlKTtjdHguZmlsbFN0eWxlPXIudGV4PT09JzInP2ByZ2IoJHtjb2wqLjcyfDB9LCR7Y29sKi42NXwwfSwke2NvbCouNHwwfSlgOnIudGV4PT09JzMnP2ByZ2IoJHtjb2wqLjQyfDB9LCR7Y29sKi40OHwwfSwke2NvbCouNDJ8MH0pYDpgcmdiKCR7Y29sKi41NXwwfSwke2NvbCouNjF8MH0sJHtjb2wqLjU4fDB9KWA7Y3R4LmZpbGxSZWN0KGkqVy9yYXlzLHRvcCxXL3JheXMrMSx3YWxsSCk7Y3R4LmZpbGxTdHlsZT0ncmdiYSgwLDAsMCwuMTYpJztpZihpJTg9PT0wKWN0eC5maWxsUmVjdChpKlcvcmF5cyx0b3AsMSx3YWxsSCk7Y3R4LmZpbGxTdHlsZT1gcmdiYSgwLDAsMCwke01hdGgubWluKC43NSxkaXN0LzIwKX0pYDtjdHguZmlsbFJlY3QoaSpXL3JheXMsdG9wLFcvcmF5cysxLHdhbGxIKX0KLy8gYXRtb3NwaGVyaWMgbGlnaHRzIGFuZCB3YWxsIG1hcmtpbmdzCmZvcihsZXQgaT0wO2k8NTtpKyspe2xldCB3eD0zK2kqMi41LHd5PTMuMSxkeD13eC1wbGF5ZXIueCxkeT13eS1wbGF5ZXIueSxkPU1hdGguaHlwb3QoZHgsZHkpLGFuZz1NYXRoLmF0YW4yKGR5LGR4KS1wbGF5ZXIuYTt3aGlsZShhbmc8LU1hdGguUEkpYW5nKz1NYXRoLlBJKjI7d2hpbGUoYW5nPk1hdGguUEkpYW5nLT1NYXRoLlBJKjI7aWYoTWF0aC5hYnMoYW5nKTxGT1YqLjU1JiZkPjEpe2xldCBzeD1XLzIrYW5nL0ZPVipXLHN5PUgvMi1ILyhkKjEuNyksc2l6ZT1NYXRoLm1pbigyMixIL2QqLjA5KTtjdHguZmlsbFN0eWxlPSdyZ2JhKDE5OSwyNTUsMTE1LC4zNSknO2N0eC5maWxsUmVjdChzeC1zaXplLzIsc3ksc2l6ZSwyKTtjdHguZmlsbFN0eWxlPSdyZ2JhKDE5OSwyNTUsMTE1LC4xMiknO2N0eC5maWxsUmVjdChzeC1zaXplLzIsc3krMyxzaXplLE1hdGgubWF4KDIsc2l6ZSouNDUpKX19Cn0KZnVuY3Rpb24gZHJhd1pvbWJpZSh6KXtsZXQgZHg9ei54LXBsYXllci54LGR5PXoueS1wbGF5ZXIueSxkaXN0PU1hdGguaHlwb3QoZHgsZHkpLGFuZz1NYXRoLmF0YW4yKGR5LGR4KS1wbGF5ZXIuYTt3aGlsZShhbmc8LU1hdGguUEkpYW5nKz1NYXRoLlBJKjI7d2hpbGUoYW5nPk1hdGguUEkpYW5nLT1NYXRoLlBJKjI7aWYoTWF0aC5hYnMoYW5nKT5GT1YqLjY1fHxkaXN0PC4xKXJldHVybjtsZXQgc3g9Vy8yK2FuZy9GT1YqVyxzY2FsZT1NYXRoLm1pbihIKjEuMTUsSC8oZGlzdCouNzgpKSxzeT1IKi41K3NjYWxlKi4xMixpZHg9TWF0aC5tYXgoMCxNYXRoLm1pbihkZXB0aC5sZW5ndGgtMSxNYXRoLmZsb29yKHN4L1cqZGVwdGgubGVuZ3RoKSkpO2lmKGRlcHRoW2lkeF08ZGlzdCouOTMpcmV0dXJuO2xldCB3PXNjYWxlKi40MixoPXNjYWxlKi43OCxib2I9TWF0aC5zaW4oei5waGFzZSkqc2NhbGUqLjAxOCx0b3A9c3ktaCtib2I7Y3R4LnNhdmUoKTtjdHgudHJhbnNsYXRlKHN4LDApO2N0eC5nbG9iYWxBbHBoYT1NYXRoLm1pbigxLDEtZGlzdC8yMik7IC8vIHNoYWRvdwpjdHguZmlsbFN0eWxlPSdyZ2JhKDAsMCwwLC41KSc7Y3R4LmJlZ2luUGF0aCgpO2N0eC5lbGxpcHNlKDAsc3krMix3Ki43LE1hdGgubWF4KDMsc2NhbGUqLjA2KSwwLDAsTWF0aC5QSSoyKTtjdHguZmlsbCgpOwovLyBsZWdzCmN0eC5zdHJva2VTdHlsZT0nIzIwMjcyNSc7Y3R4LmxpbmVXaWR0aD1NYXRoLm1heCgzLHcqLjE4KTtjdHgubGluZUNhcD0ncm91bmQnO2N0eC5iZWdpblBhdGgoKTtjdHgubW92ZVRvKC13Ki4xNix0b3AraCouNjcpO2N0eC5saW5lVG8oLXcqLjIsc3kpO2N0eC5tb3ZlVG8odyouMTUsdG9wK2gqLjY3KTtjdHgubGluZVRvKHcqLjIyLHN5KTtjdHguc3Ryb2tlKCk7Ci8vIHRvcnNvCmN0eC5maWxsU3R5bGU9ei5oaXQ+MD8nI2Q5ZTZkNSc6JyM1OTY4NWEnO2N0eC5maWxsUmVjdCgtdyouMjUsdG9wK2gqLjMsdyouNSxoKi40Myk7Y3R4LmZpbGxTdHlsZT0nIzI1MmMyNyc7Y3R4LmZpbGxSZWN0KC13Ki4yOSx0b3AraCouNDcsdyouNTgsaCouMSk7Ci8vIGFybXMKY3R4LnN0cm9rZVN0eWxlPScjNjU3NDYzJztjdHgubGluZVdpZHRoPU1hdGgubWF4KDQsdyouMTMpO2N0eC5iZWdpblBhdGgoKTtjdHgubW92ZVRvKC13Ki4yLHRvcCtoKi4zNyk7Y3R4LmxpbmVUbygtdyouNDMsdG9wK2gqLjU4K01hdGguc2luKHoucGhhc2UpKncqLjA1KTtjdHgubW92ZVRvKHcqLjIsdG9wK2gqLjM3KTtjdHgubGluZVRvKHcqLjQsdG9wK2gqLjU2LU1hdGguc2luKHoucGhhc2UpKncqLjA1KTtjdHguc3Ryb2tlKCk7Ci8vIGhlYWQKY3R4LmZpbGxTdHlsZT0nIzgyOTE3Yic7Y3R4LmJlZ2luUGF0aCgpO2N0eC5lbGxpcHNlKDAsdG9wK2gqLjIsdyouMTcsaCouMTIsMCwwLE1hdGguUEkqMik7Y3R4LmZpbGwoKTtjdHguZmlsbFN0eWxlPScjZmY1NTQ4JztjdHguZmlsbFJlY3QoLXcqLjEsdG9wK2gqLjE4LHcqLjA1NSxNYXRoLm1heCgyLGgqLjAxOCkpO2N0eC5maWxsUmVjdCh3Ki4wNDUsdG9wK2gqLjE4LHcqLjA1NSxNYXRoLm1heCgyLGgqLjAxOCkpO2N0eC5maWxsU3R5bGU9JyMyNTJiMjUnO2N0eC5maWxsUmVjdCgtdyouMDgsdG9wK2gqLjI3LHcqLjE2LE1hdGgubWF4KDIsaCouMDI1KSk7CmlmKHouaHA+MSl7Y3R4LmZpbGxTdHlsZT0nIzA4MGIwYic7Y3R4LmZpbGxSZWN0KC13Ki4yNSx0b3AtOCx3Ki41LDMpO2N0eC5maWxsU3R5bGU9JyNkN2ZmNzgnO2N0eC5maWxsUmVjdCgtdyouMjUsdG9wLTgsdyouNSpNYXRoLm1pbigxLHouaHAvKDIrTWF0aC5mbG9vcihwbGF5ZXIud2F2ZS8zKSkpLDMpfQpjdHgucmVzdG9yZSgpO3ouaGl0PU1hdGgubWF4KDAsei5oaXQtLjA0KX0KZnVuY3Rpb24gZHJhd0d1bihkdCl7d2Fsays9KGR0KjcpO2xldCBib2I9TWF0aC5zaW4od2FsaykqKHBsYXllci5ocD4wPzQ6MCksY3g9VyouNSxiYXNlPUgrMjArcmVjb2lsKjE4K2JvYjtjdHguc2F2ZSgpO2N0eC50cmFuc2xhdGUoY3gsYmFzZSk7Y3R4LnJvdGF0ZSgtLjAyNStyZWNvaWwqLjAzNSk7IC8vIG9yaWdpbmFsIHN0eWxpemVkIHJpZmxlCmN0eC5maWxsU3R5bGU9JyMxMTE3MTUnO2N0eC5iZWdpblBhdGgoKTtjdHgubW92ZVRvKC03MCwtMjApO2N0eC5saW5lVG8oLTUyLC04Mik7Y3R4LmxpbmVUbygtMjQsLTEwMCk7Y3R4LmxpbmVUbygyNSwtMTAwKTtjdHgubGluZVRvKDUyLC02NSk7Y3R4LmxpbmVUbyg2OCwwKTtjdHguY2xvc2VQYXRoKCk7Y3R4LmZpbGwoKTsKY3R4LmZpbGxTdHlsZT0nIzQ2NTI0YSc7Y3R4LmZpbGxSZWN0KC0zNiwtMTE1LDcyLDYwKTtjdHguZmlsbFN0eWxlPScjMjMyYjI2JztjdHguZmlsbFJlY3QoLTE1LC0xNDIsMzAsNjYpO2N0eC5maWxsU3R5bGU9JyM2NjcxNjgnO2N0eC5maWxsUmVjdCgtOCwtMTUzLDE2LDUwKTtjdHguZmlsbFN0eWxlPScjMGEwZTBkJztjdHguZmlsbFJlY3QoLTUsLTE3MywxMCwzNik7Y3R4LmZpbGxTdHlsZT0nIzc4ODQ3OCc7Y3R4LmZpbGxSZWN0KC0zLC0xNzYsNiwxNSk7Y3R4LmZpbGxTdHlsZT0nIzFhMjExZCc7Y3R4LmZpbGxSZWN0KC00MywtNzIsODYsMTUpO2N0eC5maWxsU3R5bGU9JyMxMDE1MTMnO2N0eC5maWxsUmVjdCgtMjYsLTU5LDUyLDM4KTtjdHguZmlsbFN0eWxlPScjNTk2NDViJztjdHguZmlsbFJlY3QoLTE2LC00NiwzMiwxNSk7CmlmKHNob3RGbGFzaD4wKXtjdHguZ2xvYmFsQWxwaGE9TWF0aC5taW4oMSxzaG90Rmxhc2gqNSk7Y3R4LmZpbGxTdHlsZT0nI2ZmZThhMCc7Y3R4LmJlZ2luUGF0aCgpO2N0eC5tb3ZlVG8oMCwtMTc1KTtjdHgubGluZVRvKC0yMCwtMjA5KTtjdHgubGluZVRvKC00LC0yMDIpO2N0eC5saW5lVG8oMCwtMjI5KTtjdHgubGluZVRvKDksLTIwMyk7Y3R4LmxpbmVUbygyMywtMjE0KTtjdHgubGluZVRvKDEyLC0xNzYpO2N0eC5jbG9zZVBhdGgoKTtjdHguZmlsbCgpO2N0eC5maWxsU3R5bGU9JyNmZjliNDInO2N0eC5iZWdpblBhdGgoKTtjdHguYXJjKDAsLTE4NSwxMiwwLE1hdGguUEkqMik7Y3R4LmZpbGwoKX1jdHgucmVzdG9yZSgpfQpmdW5jdGlvbiBkcmF3Q3Jvc3NoYWlyKCl7bGV0IGN4PVcvMixjeT1ILzIsZ2FwPTUrcmVjb2lsKjc7Y3R4LnN0cm9rZVN0eWxlPSdyZ2JhKDIyNSwyNTUsMjI2LC45KSc7Y3R4LmxpbmVXaWR0aD0yO2N0eC5iZWdpblBhdGgoKTtjdHgubW92ZVRvKGN4LWdhcC02LGN5KTtjdHgubGluZVRvKGN4LWdhcCxjeSk7Y3R4Lm1vdmVUbyhjeCtnYXAsY3kpO2N0eC5saW5lVG8oY3grZ2FwKzYsY3kpO2N0eC5tb3ZlVG8oY3gsY3ktZ2FwLTYpO2N0eC5saW5lVG8oY3gsY3ktZ2FwKTtjdHgubW92ZVRvKGN4LGN5K2dhcCk7Y3R4LmxpbmVUbyhjeCxjeStnYXArNik7Y3R4LnN0cm9rZSgpO2N0eC5maWxsU3R5bGU9JyNjYWZmNzMnO2N0eC5maWxsUmVjdChjeC0xLGN5LTEsMiwyKX0KZnVuY3Rpb24gcmVuZGVyKGR0KXtyZW5kZXJXb3JsZCgpO2xldCBzb3J0ZWQ9Wy4uLnpvbWJpZXNdLmZpbHRlcih6PT56LmFsaXZlKS5zb3J0KChhLGIpPT5NYXRoLmh5cG90KGIueC1wbGF5ZXIueCxiLnktcGxheWVyLnkpLU1hdGguaHlwb3QoYS54LXBsYXllci54LGEueS1wbGF5ZXIueSkpO2Zvcihjb25zdCB6IG9mIHNvcnRlZClkcmF3Wm9tYmllKHopO2RyYXdHdW4oZHQpO2RyYXdDcm9zc2hhaXIoKTtpZihzaG90Rmxhc2g+MClzaG90Rmxhc2g9TWF0aC5tYXgoMCxzaG90Rmxhc2gtZHQqOCk7aWYocmVjb2lsPjApcmVjb2lsPU1hdGgubWF4KDAscmVjb2lsLWR0KjMuNCk7aWYoaHVydEZsYXNoPjApe2N0eC5maWxsU3R5bGU9YHJnYmEoMTgwLDAsMCwke2h1cnRGbGFzaCouMjV9KWA7Y3R4LmZpbGxSZWN0KDAsMCxXLEgpO2h1cnRGbGFzaD1NYXRoLm1heCgwLGh1cnRGbGFzaC1kdCoxLjgpfWlmKHRvYXN0VGltZXI+MCl7dG9hc3RUaW1lci09ZHQ7aWYodG9hc3RUaW1lcjw9MCkkKCd0b2FzdCcpLnRleHRDb250ZW50PScnfX0KZnVuY3Rpb24gZmlyZSgpe2lmKCFydW5uaW5nfHxwYXVzZWR8fHBsYXllci5kZWFkfHxwbGF5ZXIucmVsb2FkaW5nfHxmaXJlTG9jaylyZXR1cm47aWYocGxheWVyLmFtbW88PTApe3NheSgnRU1QVFkg4oCUIFBSRVNTIFInKTtzb3VuZCgyMDAsLjA0LCdzcXVhcmUnLC4wMjUsLTgwKTtyZXR1cm59cGxheWVyLmFtbW8tLTtzaG90Rmxhc2g9LjE2O3JlY29pbD1NYXRoLm1pbigxLHJlY29pbCsuNjUpO25vaXNlKCk7c291bmQoOTUsLjExLCdzYXd0b290aCcsLjA1NSwgLTY1KTtsZXQgdGFyZ2V0PW51bGwsYmVzdD0uMDk7Zm9yKGNvbnN0IHogb2Ygem9tYmllcyl7aWYoIXouYWxpdmUpY29udGludWU7bGV0IGE9TWF0aC5hdGFuMih6LnktcGxheWVyLnksei54LXBsYXllci54KS1wbGF5ZXIuYTt3aGlsZShhPC1NYXRoLlBJKWErPU1hdGguUEkqMjt3aGlsZShhPk1hdGguUEkpYS09TWF0aC5QSSoyO2xldCBkPU1hdGguaHlwb3Qoei54LXBsYXllci54LHoueS1wbGF5ZXIueSk7aWYoTWF0aC5hYnMoYSk8YmVzdCYmZDxyYXkoTWF0aC5hdGFuMih6LnktcGxheWVyLnksei54LXBsYXllci54KSkuZGlzdCsuMjUpe2Jlc3Q9TWF0aC5hYnMoYSk7dGFyZ2V0PXp9fWlmKHRhcmdldCl7dGFyZ2V0LmhwLS07dGFyZ2V0LmhpdD0uMjI7c291bmQoNTUsLjA2LCd0cmlhbmdsZScsLjAzNSwyNSk7aWYodGFyZ2V0LmhwPD0wKXt0YXJnZXQuYWxpdmU9ZmFsc2U7cGxheWVyLmtpbGxzKys7cGxheWVyLnNjb3JlKz0xMDAqcGxheWVyLndhdmU7c2F5KCcrICcrMTAwKnBsYXllci53YXZlKycgUE9JTlRTJyk7aWYocGxheWVyLmtpbGxzJTg9PT0wKXBsYXllci5ocD1NYXRoLm1pbigxMDAscGxheWVyLmhwKzgpfX11cGRhdGVIdWQoKX0KZnVuY3Rpb24gcmVsb2FkKCl7aWYoIXJ1bm5pbmd8fHBhdXNlZHx8cGxheWVyLnJlbG9hZGluZ3x8cGxheWVyLmFtbW89PT0xMnx8cGxheWVyLnJlc2VydmU8PTApcmV0dXJuO3BsYXllci5yZWxvYWRpbmc9dHJ1ZTt1cGRhdGVIdWQoKTtzb3VuZCgzMDAsLjA1LCd0cmlhbmdsZScsLjAyLC0xMDApO3NldFRpbWVvdXQoKCk9PntpZighcnVubmluZylyZXR1cm47bGV0IG49TWF0aC5taW4oMTItcGxheWVyLmFtbW8scGxheWVyLnJlc2VydmUpO3BsYXllci5hbW1vKz1uO3BsYXllci5yZXNlcnZlLT1uO3BsYXllci5yZWxvYWRpbmc9ZmFsc2U7dXBkYXRlSHVkKCk7c291bmQoNDUwLC4wNiwndHJpYW5nbGUnLC4wMiw4MCl9LDEwNTApfQpjb25zdCBrZXlzPXt9O2FkZEV2ZW50TGlzdGVuZXIoJ2tleWRvd24nLGU9PntrZXlzW2UuY29kZV09dHJ1ZTtpZihbJ1NwYWNlJywnQXJyb3dVcCcsJ0Fycm93RG93bicsJ0Fycm93TGVmdCcsJ0Fycm93UmlnaHQnXS5pbmNsdWRlcyhlLmNvZGUpKWUucHJldmVudERlZmF1bHQoKTtpZihlLmNvZGU9PT0nS2V5UicpcmVsb2FkKCk7aWYoZS5jb2RlPT09J0VzY2FwZScmJnJ1bm5pbmcpe3BhdXNlZD0hcGF1c2VkO2lmKHBhdXNlZCl7ZG9jdW1lbnQuZXhpdFBvaW50ZXJMb2NrPy4oKTskKCd0aXRsZScpLmlubmVySFRNTD0nUEFVU0VEJzskKCdkZXNjJykudGV4dENvbnRlbnQ9J1Rha2UgYSBicmVhdGguIFRoZSBpbmZlY3RlZCBhcmUgd2FpdGluZy4nOyQoJ3N0YXJ0JykudGV4dENvbnRlbnQ9J1JFU1VNRSc7JCgnaG93JykudGV4dENvbnRlbnQ9J1JFVFVSTiBUTyBNRU5VJzskKCdvdmVybGF5Jykuc3R5bGUuZGlzcGxheT0nZmxleCd9ZWxzZXskKCdvdmVybGF5Jykuc3R5bGUuZGlzcGxheT0nbm9uZSc7Y2FudmFzLnJlcXVlc3RQb2ludGVyTG9jaz8uKCk7bGFzdD1wZXJmb3JtYW5jZS5ub3coKX19fSk7CmFkZEV2ZW50TGlzdGVuZXIoJ2tleXVwJyxlPT5rZXlzW2UuY29kZV09ZmFsc2UpOwpjYW52YXMuYWRkRXZlbnRMaXN0ZW5lcignY2xpY2snLCgpPT57aWYocnVubmluZyYmIXBhdXNlZCl7Y2FudmFzLnJlcXVlc3RQb2ludGVyTG9jaz8uKCk7ZmlyZSgpfX0pOwphZGRFdmVudExpc3RlbmVyKCdtb3VzZW1vdmUnLGU9PntpZihkb2N1bWVudC5wb2ludGVyTG9ja0VsZW1lbnQ9PT1jYW52YXMmJnJ1bm5pbmcmJiFwYXVzZWQpcGxheWVyLmErPWUubW92ZW1lbnRYKi4wMDI0fSk7CiQoJ3N0YXJ0Jykub25jbGljaz0oKT0+e2lmKHJ1bm5pbmcmJnBhdXNlZCl7cGF1c2VkPWZhbHNlOyQoJ292ZXJsYXknKS5zdHlsZS5kaXNwbGF5PSdub25lJztjYW52YXMucmVxdWVzdFBvaW50ZXJMb2NrPy4oKTtsYXN0PXBlcmZvcm1hbmNlLm5vdygpfWVsc2Ugc3RhcnQoKX07CiQoJ2hvdycpLm9uY2xpY2s9KCk9PntpZihydW5uaW5nJiZwYXVzZWQpe3J1bm5pbmc9ZmFsc2U7cGF1c2VkPWZhbHNlO2RvY3VtZW50LmV4aXRQb2ludGVyTG9jaz8uKCk7JCgndGl0bGUnKS5pbm5lckhUTUw9J1RIRTxicj5ERUFEWk9ORSc7JCgnZGVzYycpLnRleHRDb250ZW50PSdUaGUgZXZhY3VhdGlvbiBmYWlsZWQuIFRoZSBzdHJlZXRzIGFyZSBjcmF3bGluZy4gSG9sZCB5b3VyIGdyb3VuZCwgbWFuYWdlIHlvdXIgYW1tdW5pdGlvbiwgYW5kIHN1cnZpdmUgZWFjaCBpbmNvbWluZyB3YXZlLic7JCgnc3RhcnQnKS50ZXh0Q29udGVudD0nREVQTE9ZJzskKCdob3cnKS50ZXh0Q29udGVudD0nQ09OVFJPTFMgJiBTVVJWSVZBTCBUSVBTJzskKCdvdmVybGF5Jykuc3R5bGUuZGlzcGxheT0nZmxleCd9ZWxzZXskKCdrZXlzJykuaGlkZGVuPSEkKCdrZXlzJykuaGlkZGVuOyQoJ2hvdycpLnRleHRDb250ZW50PSQoJ2tleXMnKS5oaWRkZW4/J0NPTlRST0xTICYgU1VSVklWQUwgVElQUyc6J0hJREUgQ09OVFJPTFMnfX07CmZ1bmN0aW9uIHVwZGF0ZShkdCl7aWYoIXJ1bm5pbmd8fHBhdXNlZClyZXR1cm47bGV0IHNwZWVkPShrZXlzLlNoaWZ0TGVmdHx8a2V5cy5TaGlmdFJpZ2h0KT8zLjE6Mi4xNSxkeD0wLGR5PTA7aWYoa2V5cy5LZXlXfHxrZXlzLkFycm93VXApe2R4Kz1NYXRoLmNvcyhwbGF5ZXIuYSkqc3BlZWQqZHQ7ZHkrPU1hdGguc2luKHBsYXllci5hKSpzcGVlZCpkdH1pZihrZXlzLktleVN8fGtleXMuQXJyb3dEb3duKXtkeC09TWF0aC5jb3MocGxheWVyLmEpKnNwZWVkKmR0O2R5LT1NYXRoLnNpbihwbGF5ZXIuYSkqc3BlZWQqZHR9aWYoa2V5cy5LZXlBKXtkeCs9TWF0aC5jb3MocGxheWVyLmEtTWF0aC5QSS8yKSpzcGVlZCpkdDtkeSs9TWF0aC5zaW4ocGxheWVyLmEtTWF0aC5QSS8yKSpzcGVlZCpkdH1pZihrZXlzLktleUQpe2R4Kz1NYXRoLmNvcyhwbGF5ZXIuYStNYXRoLlBJLzIpKnNwZWVkKmR0O2R5Kz1NYXRoLnNpbihwbGF5ZXIuYStNYXRoLlBJLzIpKnNwZWVkKmR0fWlmKGNhbk1vdmUocGxheWVyLngrZHgscGxheWVyLnkpKXBsYXllci54Kz1keDtpZihjYW5Nb3ZlKHBsYXllci54LHBsYXllci55K2R5KSlwbGF5ZXIueSs9ZHk7CmxldCBhbGl2ZT16b21iaWVzLmZpbHRlcih6PT56LmFsaXZlKS5sZW5ndGg7c3Bhd25DbG9jay09ZHQ7aWYoc3Bhd25DbG9jazw9MCYmYWxpdmU8TWF0aC5taW4oNStwbGF5ZXIud2F2ZSoyLDE4KSl7c3Bhd25ab21iaWUoKTtzcGF3bkNsb2NrPU1hdGgubWF4KC42NSwyLjMtcGxheWVyLndhdmUqLjA5KX1mb3IoY29uc3QgeiBvZiB6b21iaWVzKXtpZighei5hbGl2ZSljb250aW51ZTt6LnBoYXNlKz1kdCo1O2xldCBkeD1wbGF5ZXIueC16LngsZHk9cGxheWVyLnktei55LGQ9TWF0aC5oeXBvdChkeCxkeSk7aWYoZD4uNjIpe2xldCB2eD1keC9kKnouc3BlZWQqZHQsdnk9ZHkvZCp6LnNwZWVkKmR0O2lmKGNhbk1vdmUoei54K3Z4LHoueSkpei54Kz12eDtpZihjYW5Nb3ZlKHoueCx6LnkrdnkpKXoueSs9dnl9ZWxzZXt6LmF0dGFjay09ZHQ7aWYoei5hdHRhY2s8PTApe3ouYXR0YWNrPTEuMDU7cGxheWVyLmhwLT03O2h1cnRGbGFzaD0uODtzb3VuZCg2NSwuMTIsJ3Nhd3Rvb3RoJywuMDYsLTI1KTt1cGRhdGVIdWQoKTtpZihwbGF5ZXIuaHA8PTApe3BsYXllci5ocD0wO3VwZGF0ZUh1ZCgpO2VuZEdhbWUoKTtyZXR1cm59fX19aWYocGxheWVyLmtpbGxzPj1wbGF5ZXIud2F2ZSo4JiZhbGl2ZT09PTApbmV3V2F2ZSgpO3VwZGF0ZUh1ZCgpfQpmdW5jdGlvbiBsb29wKHQpe2xldCBkdD1NYXRoLm1pbiguMDQsKHQtbGFzdCkvMTAwMHx8MCk7bGFzdD10O2lmKHJ1bm5pbmcmJiFwYXVzZWQpdXBkYXRlKGR0KTtyZW5kZXIoZHQpO3JlcXVlc3RBbmltYXRpb25GcmFtZShsb29wKX0KcmVxdWVzdEFuaW1hdGlvbkZyYW1lKGxvb3ApOwp9KSgpOwo8L3NjcmlwdD4KPC9ib2R5Pgo8L2h0bWw+"), function(c){ return c.charCodeAt(0); }));
+
+// LOCAL GAMES
+
+var canvas = document.getElementById("gameCanvas");
+var ctx = canvas.getContext("2d");
+var anim = null, running = false;
+var audioCtx = null;
+
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function sfx(type) {
+  try {
+    var c = getAudio(), o = c.createOscillator(), g = c.createGain(), now = c.currentTime;
+    o.connect(g); g.connect(c.destination);
+    if (type === "shoot") {
+      // deeper gun blast
+      o.type = "sawtooth";
+      o.frequency.setValueAtTime(120, now);
+      o.frequency.exponentialRampToValueAtTime(40, now + 0.15);
+      g.gain.setValueAtTime(0.28, now);
+      g.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+      o.start(now); o.stop(now + 0.18);
+      // high crack layer
+      var o2 = c.createOscillator();
+      var g2 = c.createGain();
+      o2.connect(g2); g2.connect(c.destination);
+      o2.type = "square";
+      o2.frequency.setValueAtTime(400, now);
+      o2.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+      g2.gain.setValueAtTime(0.12, now);
+      g2.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
+      o2.start(now); o2.stop(now + 0.09);
+    } else if (type === "hit") {
+      o.type = "sawtooth"; o.frequency.value = 100;
+      g.gain.setValueAtTime(0.16, now); g.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+      o.start(now); o.stop(now + 0.18);
+    } else if (type === "die") {
+      o.type = "triangle"; o.frequency.setValueAtTime(280, now);
+      o.frequency.exponentialRampToValueAtTime(45, now + 0.4);
+      g.gain.setValueAtTime(0.2, now); g.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+      o.start(now); o.stop(now + 0.4);
+    } else if (type === "step") {
+      o.type = "sine"; o.frequency.value = 80;
+      g.gain.setValueAtTime(0.05, now); g.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+      o.start(now); o.stop(now + 0.08);
+    }
+  } catch (e) {}
+}
+
+function closePlay() {
+  running = false;
+  var oldFrame = document.getElementById("deadzone-frame");
+  if (oldFrame) oldFrame.remove();
+  canvas.style.display = "block";
+  if (anim) cancelAnimationFrame(anim);
+  anim = null;
+  document.getElementById("play-area").classList.remove("show");
+  document.getElementById("controls-screen").style.display = "none";
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  window.onkeydown = null;
+  window.onkeyup = null;
+  canvas.onclick = null;
+  canvas.onmousemove = null;
+}
+
+var CONTROLS = {
+  tunnel: "<b>TUNNEL FPS</b><br>W A S D — move<br>Mouse — look around<br>Left Click — shoot<br>Survive the tunnel.",
+  corridor: "<b>DARK CORRIDOR</b><br>W A S D — move<br>Mouse — look<br>Reach the green light. Avoid red threats.",
+  arena: "<b>ARENA SHOOTER</b><br>W A S D — move<br>Mouse — look<br>Left Click — shoot<br>Clear the enemies.",
+  room: "<b>ROOM CLEAR</b><br>W A S D — move<br>Mouse — look<br>Left Click — shoot<br>Eliminate every target.",
+  hall: "<b>SHADOW HALL</b><br>W A S D — move<br>Mouse — look<br>Find the exit. Stay away from the dark figures.",
+  voidrun: "<b>VOID RUN</b><br>A / D — strafe<br>Space — jump<br>Don't hit the obstacles.",
+  outpost: "<b>OUTPOST</b><br>W A S D — move<br>Mouse — look<br>Explore and survive.",
+  nightops: "<b>NIGHT OPS</b><br>W A S D — move<br>Mouse — look<br>Left Click — shoot the glowing targets."
+};
+
+function startLocal(id, title) {
+  closePlay();
+  document.getElementById("play-title").textContent = title;
+  document.getElementById("play-area").classList.add("show");
+  document.getElementById("play-area").scrollIntoView({ behavior: "smooth", block: "center" });
+  document.getElementById("controls-text").innerHTML = CONTROLS[id] || "WASD + Mouse";
+  document.getElementById("controls-screen").style.display = "block";
+  canvas.style.display = "none";
+  document.getElementById("game-controls").textContent = "";
+
+  document.getElementById("start-game-btn").onclick = function () {
+    document.getElementById("controls-screen").style.display = "none";
+    if (id === "deadzone") {
+      var frame = document.createElement("iframe");
+      frame.id = "deadzone-frame";
+      frame.className = "play-frame";
+      frame.title = "Deadzone: Outbreak";
+      frame.setAttribute("allow", "autoplay; fullscreen");
+      frame.srcdoc = DEADZONE_HTML;
+      document.getElementById("game-controls").textContent = "WASD move • Mouse aim • Click fire • R reload • Shift sprint • Esc pause";
+      document.getElementById("game-controls").before(frame);
+      return;
+    }
+    canvas.style.display = "block";
+    // bigger canvas for PC feel
+    canvas.width = 640;
+    canvas.height = 400;
+    running = true;
+    getAudio();
+    if (id === "tunnel") runTunnel();
+    else if (id === "corridor") runCorridor();
+    else if (id === "arena") runArena();
+    else if (id === "room") runRoom();
+    else if (id === "hall") runHall();
+    else if (id === "voidrun") runVoidRun();
+    else if (id === "outpost") runOutpost();
+    else if (id === "nightops") runNightOps();
+  };
+}
+
+/* ========== FIRST-PERSON STYLE ENGINE (pure canvas, no libraries) ========== */
+// Simple raycasting-style first person for corridors + FPS feel
+
+function runTunnel() {
+  document.getElementById("game-controls").textContent = "WASD move • Mouse look • Click shoot";
+  var W = canvas.width, H = canvas.height;
+  var px = 2.5, py = 2.5, pa = 0;
+  var mapW = 18, mapH = 18;
+  var map = [];
+  for (var y = 0; y < mapH; y++) {
+    map[y] = [];
+    for (var x = 0; x < mapW; x++) {
+      map[y][x] = (x === 0 || y === 0 || x === mapW - 1 || y === mapH - 1) ? 1 : 0;
+    }
+  }
+  map[5][5] = 1; map[5][12] = 1; map[12][5] = 1; map[12][12] = 1;
+  map[9][9] = 1; map[3][9] = 1; map[9][3] = 1; map[14][9] = 1; map[9][14] = 1;
+
+  var enemies = [];
+  function spawnE() {
+    var ex, ey, tries = 0;
+    do {
+      ex = 1.5 + Math.random() * (mapW - 3);
+      ey = 1.5 + Math.random() * (mapH - 3);
+      tries++;
+    } while (tries < 30 && (map[ey | 0][ex | 0] === 1 || Math.hypot(ex - px, ey - py) < 3));
+    enemies.push({ x: ex, y: ey, hp: 1, bob: Math.random() * 10 });
+  }
+  for (var i = 0; i < 12; i++) spawnE();
+
+  var bullets = [];
+  var score = 0, hp = 5, flash = 0, hurtFlash = 0;
+  var keys = {};
+  var mouseLook = 0;
+  var zBuffer = new Array(W);
+
+  window.onkeydown = function (e) { keys[e.code] = true; };
+  window.onkeyup = function (e) { keys[e.code] = false; };
+  canvas.onmousemove = function (e) {
+    var rect = canvas.getBoundingClientRect();
+    mouseLook = ((e.clientX - rect.left) / rect.width - 0.5) * 2.2;
+  };
+  canvas.onclick = function () {
+    sfx("shoot");
+    flash = 6;
+    bullets.push({
+      x: px + Math.cos(pa) * 0.4,
+      y: py + Math.sin(pa) * 0.4,
+      dx: Math.cos(pa) * 0.4,
+      dy: Math.sin(pa) * 0.4,
+      life: 35
+    });
+  };
+
+  function castRay(angle) {
+    var sin = Math.sin(angle), cos = Math.cos(angle);
+    var dist = 0, hit = 0, side = 0;
+    var step = 0.02;
+    while (dist < 14) {
+      dist += step;
+      var tx = px + cos * dist;
+      var ty = py + sin * dist;
+      var mx = tx | 0, my = ty | 0;
+      if (mx < 0 || my < 0 || mx >= mapW || my >= mapH || map[my][mx] === 1) {
+        // side check for shading
+        var fx = tx - mx, fy = ty - my;
+        side = (Math.min(fx, 1 - fx) < Math.min(fy, 1 - fy)) ? 0 : 1;
+        return { dist: dist, side: side, tx: tx, ty: ty };
+      }
+    }
+    return { dist: 14, side: 0, tx: 0, ty: 0 };
+  }
+
+  // procedural wall texture strip
+  function wallColor(dist, side, tx, ty, yNorm) {
+    var base = side ? 0.65 : 1;
+    var shade = Math.max(0.12, Math.min(1, (1.15 - dist / 11) * base));
+    // brick pattern
+    var u = ((tx * 4) % 1 + 1) % 1;
+    var v = yNorm;
+    var brick = ((u * 4 | 0) + (v * 6 | 0)) % 2 === 0 ? 1.1 : 0.85;
+    // mortar lines
+    if (u < 0.06 || u > 0.94 || (v * 6) % 1 < 0.08) brick *= 0.55;
+    var r = (95 * shade * brick) | 0;
+    var g = (78 * shade * brick) | 0;
+    var b = (62 * shade * brick) | 0;
+    // slight wet/metal variation
+    if (((tx * 7 + ty * 3) | 0) % 5 === 0) { r = (r * 0.7) | 0; g = (g * 0.75) | 0; b = (b * 0.9 + 20) | 0; }
+    return "rgb(" + r + "," + g + "," + b + ")";
+  }
+
+  function loop() {
+    if (!running) return;
+    if (flash > 0) flash--;
+    if (hurtFlash > 0) hurtFlash--;
+
+    pa += mouseLook * 0.045;
+    var spd = 0.055;
+    var nx = px, ny = py;
+    if (keys["KeyW"]) { nx += Math.cos(pa) * spd; ny += Math.sin(pa) * spd; }
+    if (keys["KeyS"]) { nx -= Math.cos(pa) * spd; ny -= Math.sin(pa) * spd; }
+    if (keys["KeyA"]) { nx += Math.cos(pa - 1.5708) * spd; ny += Math.sin(pa - 1.5708) * spd; }
+    if (keys["KeyD"]) { nx += Math.cos(pa + 1.5708) * spd; ny += Math.sin(pa + 1.5708) * spd; }
+    if (map[ny | 0] && map[ny | 0][nx | 0] !== 1) { px = nx; py = ny; }
+
+    for (var i = bullets.length - 1; i >= 0; i--) {
+      var b = bullets[i];
+      b.x += b.dx; b.y += b.dy; b.life--;
+      if (b.life <= 0 || (map[b.y | 0] && map[b.y | 0][b.x | 0] === 1)) { bullets.splice(i, 1); continue; }
+      for (var j = enemies.length - 1; j >= 0; j--) {
+        if (Math.hypot(enemies[j].x - b.x, enemies[j].y - b.y) < 0.4) {
+          enemies.splice(j, 1); bullets.splice(i, 1);
+          score += 10; sfx("hit"); spawnE(); break;
+        }
+      }
+    }
+    enemies.forEach(function (e) {
+      e.bob += 0.08;
+      var dx = px - e.x, dy = py - e.y, d = Math.hypot(dx, dy) || 1;
+      e.x += (dx / d) * 0.028; e.y += (dy / d) * 0.028;
+      if (d < 0.55) {
+        hp--; sfx("die"); hurtFlash = 12;
+        e.x -= dx * 1.5; e.y -= dy * 1.5;
+        if (hp <= 0) { hp = 5; score = Math.max(0, score - 20); }
+      }
+    });
+
+    // ===== RENDER =====
+    // ceiling gradient
+    var ceilGrad = ctx.createLinearGradient(0, 0, 0, H / 2);
+    ceilGrad.addColorStop(0, "#0a0e18");
+    ceilGrad.addColorStop(1, "#151c2c");
+    ctx.fillStyle = ceilGrad;
+    ctx.fillRect(0, 0, W, H / 2);
+    // floor gradient
+    var floorGrad = ctx.createLinearGradient(0, H / 2, 0, H);
+    floorGrad.addColorStop(0, "#1a1520");
+    floorGrad.addColorStop(1, "#0d0a10");
+    ctx.fillStyle = floorGrad;
+    ctx.fillRect(0, H / 2, W, H / 2);
+
+    // subtle floor grid for depth
+    ctx.strokeStyle = "rgba(40,35,50,0.25)";
+    ctx.lineWidth = 1;
+    for (var i = 1; i < 8; i++) {
+      var yy = H / 2 + (i * i * 4);
+      if (yy < H) {
+        ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(W, yy); ctx.stroke();
+      }
+    }
+
+    var fov = Math.PI / 3.1;
+    var cols = 200;
+    for (var col = 0; col < cols; col++) {
+      var rayAngle = pa - fov / 2 + (col / cols) * fov;
+      var hit = castRay(rayAngle);
+      var dist = hit.dist * Math.cos(rayAngle - pa); // fisheye fix
+      zBuffer[col] = dist;
+      var wallH = Math.min(H * 1.4, (H * 0.85) / (dist + 0.01));
+      var x0 = (col / cols) * W;
+      var sliceW = W / cols + 1;
+      var y0 = (H - wallH) / 2;
+
+      // draw wall strip with texture
+      for (var sy = 0; sy < wallH; sy += 2) {
+        var yNorm = sy / wallH;
+        ctx.fillStyle = wallColor(dist, hit.side, hit.tx, hit.ty, yNorm);
+        ctx.fillRect(x0, y0 + sy, sliceW, 3);
+      }
+      // top edge highlight
+      ctx.fillStyle = "rgba(255,255,255,0.04)";
+      ctx.fillRect(x0, y0, sliceW, 2);
+    }
+
+    // enemies as sprites with depth test
+    var sprites = enemies.map(function (e) {
+      var dx = e.x - px, dy = e.y - py;
+      return { e: e, dist: Math.hypot(dx, dy), angle: Math.atan2(dy, dx) - pa, dx: dx, dy: dy };
+    }).sort(function (a, b) { return b.dist - a.dist; });
+
+    sprites.forEach(function (s) {
+      var angle = s.angle;
+      while (angle > Math.PI) angle -= Math.PI * 2;
+      while (angle < -Math.PI) angle += Math.PI * 2;
+      if (Math.abs(angle) > fov / 1.6 || s.dist < 0.25) return;
+      var sx = (0.5 + angle / fov) * W;
+      var colIdx = (sx / W * cols) | 0;
+      if (colIdx >= 0 && colIdx < cols && s.dist > zBuffer[colIdx] * 0.95) return; // behind wall
+      var sh = Math.min(H * 0.9, (H * 0.7) / s.dist);
+      var bob = Math.sin(s.e.bob) * 4;
+      var sw = sh * 0.45;
+      var alpha = Math.max(0.25, Math.min(1, 1.3 - s.dist / 9));
+      // humanoid enemy model
+      var top = (H - sh) / 2 + bob;
+      // legs
+      ctx.fillStyle = "rgba(40,30,35," + alpha + ")";
+      ctx.fillRect(sx - sw * 0.28, top + sh * 0.55, sw * 0.22, sh * 0.42);
+      ctx.fillRect(sx + sw * 0.06, top + sh * 0.55, sw * 0.22, sh * 0.42);
+      // torso
+      ctx.fillStyle = "rgba(90,25,30," + alpha + ")";
+      ctx.fillRect(sx - sw * 0.32, top + sh * 0.22, sw * 0.64, sh * 0.38);
+      // arms
+      ctx.fillStyle = "rgba(70,20,25," + alpha + ")";
+      ctx.fillRect(sx - sw * 0.48, top + sh * 0.24, sw * 0.16, sh * 0.32);
+      ctx.fillRect(sx + sw * 0.32, top + sh * 0.24, sw * 0.16, sh * 0.32);
+      // head
+      ctx.fillStyle = "rgba(200,160,140," + alpha + ")";
+      ctx.beginPath();
+      ctx.arc(sx, top + sh * 0.14, sw * 0.28, 0, Math.PI * 2);
+      ctx.fill();
+      // glowing eyes
+      ctx.fillStyle = "rgba(255,40,40," + alpha + ")";
+      ctx.beginPath(); ctx.arc(sx - sw * 0.1, top + sh * 0.12, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(sx + sw * 0.1, top + sh * 0.12, 3.5, 0, Math.PI * 2); ctx.fill();
+      // eye glow
+      ctx.fillStyle = "rgba(255,80,80," + (alpha * 0.35) + ")";
+      ctx.beginPath(); ctx.arc(sx - sw * 0.1, top + sh * 0.12, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(sx + sw * 0.1, top + sh * 0.12, 7, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // muzzle flash
+    if (flash > 0) {
+      ctx.fillStyle = "rgba(255,200,80," + (flash / 8) + ")";
+      ctx.beginPath();
+      ctx.arc(W / 2 + 8, H - 95, 25 + flash * 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // more detailed realistic gun
+    var gx = W / 2;
+    var recoil = flash > 0 ? flash * 1.8 : 0;
+    // arms
+    ctx.fillStyle = "rgba(45,35,30,0.9)";
+    ctx.beginPath();
+    ctx.moveTo(gx - 55, H); ctx.lineTo(gx - 25, H - 75 + recoil); ctx.lineTo(gx - 5, H - 70 + recoil); ctx.lineTo(gx - 30, H);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(gx + 15, H); ctx.lineTo(gx + 5, H - 68 + recoil); ctx.lineTo(gx + 35, H - 72 + recoil); ctx.lineTo(gx + 50, H);
+    ctx.fill();
+    // gun body (receiver)
+    ctx.fillStyle = "#1c2129";
+    ctx.fillRect(gx - 14, H - 100 + recoil, 32, 48);
+    // barrel
+    ctx.fillStyle = "#0f1318";
+    ctx.fillRect(gx - 5, H - 128 + recoil, 12, 32);
+    // muzzle
+    ctx.fillStyle = "#2a303c";
+    ctx.fillRect(gx - 7, H - 132 + recoil, 16, 6);
+    // stock / grip
+    ctx.fillStyle = "#3d2b1f";
+    ctx.fillRect(gx - 16, H - 58 + recoil, 20, 28);
+    ctx.fillStyle = "#2a1e16";
+    ctx.fillRect(gx - 4, H - 52 + recoil, 14, 22);
+    // magazine
+    ctx.fillStyle = "#15191f";
+    ctx.fillRect(gx - 8, H - 72 + recoil, 12, 20);
+    // iron sight
+    ctx.fillStyle = "#4a5568";
+    ctx.fillRect(gx + 2, H - 108 + recoil, 8, 6);
+    ctx.fillRect(gx + 4, H - 114 + recoil, 4, 8);
+    // metal edge highlight
+    ctx.fillStyle = "rgba(180,190,210,0.2)";
+    ctx.fillRect(gx - 2, H - 126 + recoil, 3, 55);
+    // hand on grip
+    ctx.fillStyle = "rgba(200,160,130,0.85)";
+    ctx.beginPath(); ctx.arc(gx + 6, H - 48 + recoil, 8, 0, Math.PI * 2); ctx.fill();
+
+    // crosshair
+    ctx.strokeStyle = "rgba(251,191,36,0.85)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 12, H / 2); ctx.lineTo(W / 2 - 4, H / 2);
+    ctx.moveTo(W / 2 + 4, H / 2); ctx.lineTo(W / 2 + 12, H / 2);
+    ctx.moveTo(W / 2, H / 2 - 12); ctx.lineTo(W / 2, H / 2 - 4);
+    ctx.moveTo(W / 2, H / 2 + 4); ctx.lineTo(W / 2, H / 2 + 12);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(W / 2, H / 2, 3, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // vignette
+    var vig = ctx.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, H * 0.75);
+    vig.addColorStop(0, "rgba(0,0,0,0)");
+    vig.addColorStop(1, "rgba(0,0,0,0.55)");
+    ctx.fillStyle = vig;
+    ctx.fillRect(0, 0, W, H);
+
+    // damage flash
+    if (hurtFlash > 0) {
+      ctx.fillStyle = "rgba(180,20,20," + (hurtFlash / 18) + ")";
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // HUD
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.fillRect(8, 8, 160, 44);
+    ctx.fillStyle = "#e2e8f0"; ctx.font = "bold 14px sans-serif";
+    ctx.fillText("SCORE  " + score, 16, 28);
+    ctx.fillStyle = hp > 2 ? "#4ade80" : "#f87171";
+    ctx.fillText("HP  " + hp, 16, 46);
+
+    document.getElementById("play-title").textContent = "Tunnel FPS  |  Score: " + score + "  HP: " + hp;
+    anim = requestAnimationFrame(loop);
+  }
+  anim = requestAnimationFrame(loop);
+}
+
+function runCorridor() {
+  document.getElementById("game-controls").textContent = "WASD move • Mouse look • Reach the green light";
+  // reuse tunnel engine but different goal
+  var W = canvas.width, H = canvas.height;
+  var px = 2, py = 8, pa = -Math.PI / 2;
+  var mapW = 12, mapH = 20;
+  var map = [];
+  for (var y = 0; y < mapH; y++) {
+    map[y] = [];
+    for (var x = 0; x < mapW; x++) {
+      map[y][x] = (x === 0 || x === mapW - 1 || y === 0 || y === mapH - 1) ? 1 : 0;
+    }
+  }
+  // obstacles
+  for (var i = 3; i < 17; i += 3) {
+    map[i][3] = 1; map[i][8] = 1;
+  }
+  var threats = [];
+  for (var i = 0; i < 9; i++) {
+    threats.push({ x: 2 + Math.random() * 8, y: 3 + Math.random() * 14, speed: 0.02 + Math.random() * 0.015 });
+  }
+  var keys = {}, mouseLook = 0, won = false;
+
+  window.onkeydown = function (e) { keys[e.code] = true; };
+  window.onkeyup = function (e) { keys[e.code] = false; };
+  canvas.onmousemove = function (e) {
+    var rect = canvas.getBoundingClientRect();
+    mouseLook = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+  };
+
+  function castRay(angle) {
+    var sin = Math.sin(angle), cos = Math.cos(angle), dist = 0;
+    while (dist < 14) {
+      dist += 0.06;
+      var tx = px + cos * dist, ty = py + sin * dist;
+      var mx = tx | 0, my = ty | 0;
+      if (mx < 0 || my < 0 || mx >= mapW || my >= mapH || map[my][mx] === 1) return dist;
+    }
+    return 14;
+  }
+
+  function loop() {
+    if (!running) return;
+    if (!won) {
+      pa += mouseLook * 0.04;
+      var spd = 0.055, nx = px, ny = py;
+      if (keys["KeyW"]) { nx += Math.cos(pa) * spd; ny += Math.sin(pa) * spd; }
+      if (keys["KeyS"]) { nx -= Math.cos(pa) * spd; ny -= Math.sin(pa) * spd; }
+      if (keys["KeyA"]) { nx += Math.cos(pa - 1.57) * spd; ny += Math.sin(pa - 1.57) * spd; }
+      if (keys["KeyD"]) { nx += Math.cos(pa + 1.57) * spd; ny += Math.sin(pa + 1.57) * spd; }
+      if (map[ny | 0] && map[ny | 0][nx | 0] !== 1) { px = nx; py = ny; }
+
+      threats.forEach(function (t) {
+        var dx = px - t.x, dy = py - t.y, d = Math.hypot(dx, dy) || 1;
+        var sp = t.speed || 0.022;
+        t.x += (dx / d) * sp; t.y += (dy / d) * sp;
+        if (d < 0.55) { px = 2; py = 8; sfx("die"); }
+      });
+      if (py < 2.5) { won = true; sfx("hit"); }
+    }
+
+    // very dark horror atmosphere
+    ctx.fillStyle = "#050308"; ctx.fillRect(0, 0, W, H / 2);
+    ctx.fillStyle = "#0a0610"; ctx.fillRect(0, H / 2, W, H / 2);
+    var fov = Math.PI / 3.2, cols = 160;
+    for (var col = 0; col < cols; col++) {
+      var rayAngle = pa - fov / 2 + (col / cols) * fov;
+      var dist = castRay(rayAngle);
+      var wallH = Math.min(H, (H * 0.8) / (dist + 0.01));
+      // almost black walls, only close walls visible
+      var shade = Math.max(8, 90 - dist * 12);
+      var flicker = (Math.random() > 0.97) ? 1.4 : 1;
+      shade = Math.min(120, shade * flicker);
+      ctx.fillStyle = "rgb(" + (shade * 0.35 | 0) + "," + (shade * 0.2 | 0) + "," + (shade * 0.45 | 0) + ")";
+      ctx.fillRect((col / cols) * W, (H - wallH) / 2, W / cols + 1, wallH);
+    }
+    // blood stains on close walls occasional
+    if (Math.random() > 0.98) {
+      ctx.fillStyle = "rgba(80,10,15,0.4)";
+      ctx.fillRect(Math.random() * W, H * 0.3, 20 + Math.random() * 40, 8);
+    }
+    // scary humanoid threats
+    threats.forEach(function (t) {
+      var dx = t.x - px, dy = t.y - py, dist = Math.hypot(dx, dy);
+      var angle = Math.atan2(dy, dx) - pa;
+      while (angle > Math.PI) angle -= Math.PI * 2;
+      while (angle < -Math.PI) angle += Math.PI * 2;
+      if (Math.abs(angle) < fov / 1.5 && dist > 0.35) {
+        var sx = (0.5 + angle / fov) * W;
+        var sh = Math.min(H * 0.85, (H * 0.7) / dist);
+        var sw = sh * 0.4;
+        var top = (H - sh) / 2;
+        var a = Math.max(0.3, Math.min(1, 1.2 - dist / 8));
+        // tall thin body
+        ctx.fillStyle = "rgba(25,15,20," + a + ")";
+        ctx.fillRect(sx - sw * 0.25, top + sh * 0.15, sw * 0.5, sh * 0.85);
+        // head
+        ctx.fillStyle = "rgba(40,25,30," + a + ")";
+        ctx.beginPath(); ctx.arc(sx, top + sh * 0.12, sw * 0.28, 0, Math.PI * 2); ctx.fill();
+        // glowing eyes (only thing you really see in the dark)
+        var eyeA = Math.min(1, a * 1.4);
+        ctx.fillStyle = "rgba(255,30,30," + eyeA + ")";
+        ctx.beginPath(); ctx.arc(sx - sw * 0.1, top + sh * 0.1, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(sx + sw * 0.1, top + sh * 0.1, 4, 0, Math.PI * 2); ctx.fill();
+        // eye glow bloom
+        ctx.fillStyle = "rgba(255,0,0," + (eyeA * 0.25) + ")";
+        ctx.beginPath(); ctx.arc(sx - sw * 0.1, top + sh * 0.1, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(sx + sw * 0.1, top + sh * 0.1, 12, 0, Math.PI * 2); ctx.fill();
+        // if very close - jump scare flash
+        if (dist < 1.2) {
+          ctx.fillStyle = "rgba(80,0,0,0.35)";
+          ctx.fillRect(0, 0, W, H);
+        }
+      }
+    });
+    // heavy vignette for horror
+    var vig = ctx.createRadialGradient(W/2, H/2, H*0.15, W/2, H/2, H*0.7);
+    vig.addColorStop(0, "rgba(0,0,0,0)");
+    vig.addColorStop(1, "rgba(0,0,0,0.75)");
+    ctx.fillStyle = vig;
+    ctx.fillRect(0, 0, W, H);
+    // exit glow when near
+    if (py < 5) {
+      ctx.fillStyle = "rgba(52,211,153,0.15)";
+      ctx.fillRect(0, 0, W, H);
+    }
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 8, H / 2); ctx.lineTo(W / 2 + 8, H / 2);
+    ctx.moveTo(W / 2, H / 2 - 8); ctx.lineTo(W / 2, H / 2 + 8);
+    ctx.stroke();
+
+    if (!won && Math.random() > 0.992) {
+        document.getElementById("play-title").textContent = "BEHIND YOU";
+        sfx("die");
+      } else {
+        document.getElementById("play-title").textContent = won ? "Dark Corridor — ESCAPED" : "Dark Corridor  |  Distance left: " + Math.max(0, (py - 2) | 0);
+      }
+    anim = requestAnimationFrame(loop);
+  }
+  anim = requestAnimationFrame(loop);
+}
+
+function runArena() {
+  // top-down-ish arena with FPS crosshair feel but simpler movement - still PC focused
+  document.getElementById("game-controls").textContent = "WASD move • Mouse aim • Click shoot";
+  var W = canvas.width, H = canvas.height;
+  var px = W / 2, py = H / 2, angle = 0;
+  var enemies = [], bullets = [], score = 0, keys = {};
+  function spawn() {
+    var a = Math.random() * Math.PI * 2;
+    enemies.push({ x: px + Math.cos(a) * 280, y: py + Math.sin(a) * 180, hp: 1 });
+  }
+  for (var i = 0; i < 12; i++) spawn();
+
+  window.onkeydown = function (e) { keys[e.code] = true; };
+  window.onkeyup = function (e) { keys[e.code] = false; };
+  canvas.onmousemove = function (e) {
+    var r = canvas.getBoundingClientRect();
+    var mx = (e.clientX - r.left) * (W / r.width);
+    var my = (e.clientY - r.top) * (H / r.height);
+    angle = Math.atan2(my - py, mx - px);
+  };
+  canvas.onclick = function () {
+    sfx("shoot");
+    bullets.push({ x: px, y: py, dx: Math.cos(angle) * 9, dy: Math.sin(angle) * 9 });
+  };
+
+  function loop() {
+    if (!running) return;
+    if (keys["KeyW"] || keys["ArrowUp"]) py = Math.max(30, py - 4);
+    if (keys["KeyS"] || keys["ArrowDown"]) py = Math.min(H - 30, py + 4);
+    if (keys["KeyA"] || keys["ArrowLeft"]) px = Math.max(30, px - 4);
+    if (keys["KeyD"] || keys["ArrowRight"]) px = Math.min(W - 30, px + 4);
+
+    bullets.forEach(function (b) { b.x += b.dx; b.y += b.dy; });
+    bullets = bullets.filter(function (b) { return b.x > 0 && b.x < W && b.y > 0 && b.y < H; });
+    enemies.forEach(function (e) {
+      var dx = px - e.x, dy = py - e.y, d = Math.hypot(dx, dy) || 1;
+      e.x += (dx / d) * 1.9; e.y += (dy / d) * 1.9;
+      if (d < 22) { sfx("die"); e.x = px + (Math.random() - 0.5) * 400; e.y = py + (Math.random() - 0.5) * 300; }
+    });
+    bullets.forEach(function (b, bi) {
+      enemies.forEach(function (e, ei) {
+        if (Math.hypot(e.x - b.x, e.y - b.y) < 18) {
+          enemies.splice(ei, 1); bullets.splice(bi, 1); score += 10; sfx("hit"); spawn();
+        }
+      });
+    });
+
+    ctx.fillStyle = "#0b1220"; ctx.fillRect(0, 0, W, H);
+    // grid
+    ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 1;
+    for (var i = 0; i < W; i += 40) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke(); }
+    for (var j = 0; j < H; j += 40) { ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(W, j); ctx.stroke(); }
+
+    ctx.fillStyle = "#ef4444";
+    enemies.forEach(function (e) { ctx.beginPath(); ctx.arc(e.x, e.y, 14, 0, Math.PI * 2); ctx.fill(); });
+    ctx.fillStyle = "#fbbf24";
+    bullets.forEach(function (b) { ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI * 2); ctx.fill(); });
+    // player
+    ctx.fillStyle = "#3b82f6";
+    ctx.beginPath(); ctx.arc(px, py, 12, 0, Math.PI * 2); ctx.fill();
+    // gun direction
+    ctx.strokeStyle = "#93c5fd"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + Math.cos(angle) * 28, py + Math.sin(angle) * 28); ctx.stroke();
+
+    document.getElementById("play-title").textContent = "Arena Shooter  |  Score: " + score;
+    anim = requestAnimationFrame(loop);
+  }
+  anim = requestAnimationFrame(loop);
+}
+
+function runRoom() {
+  runArena();
+  document.getElementById("play-title").textContent = "Room Clear";
+}
+
+function runHall() {
+  runCorridor();
+  document.getElementById("play-title").textContent = "Shadow Hall";
+}
+
+function runVoidRun() {
+  document.getElementById("game-controls").textContent = "A/D strafe • Space jump";
+  var W = canvas.width, H = canvas.height;
+  var px = W / 2, py = H - 80, vy = 0, onGround = true;
+  var obstacles = [], score = 0, frames = 0, speed = 5, dead = false, keys = {};
+  window.onkeydown = function (e) { keys[e.code] = true; if (e.code === "Space") e.preventDefault(); };
+  window.onkeyup = function (e) { keys[e.code] = false; };
+
+  function loop() {
+    if (!running) return;
+    frames++;
+    if (!dead) {
+      if (keys["KeyA"] || keys["ArrowLeft"]) px = Math.max(40, px - 7);
+      if (keys["KeyD"] || keys["ArrowRight"]) px = Math.min(W - 40, px + 7);
+      if ((keys["Space"] || keys["ArrowUp"]) && onGround) { vy = -13; onGround = false; }
+      vy += 0.65; py += vy;
+      if (py >= H - 80) { py = H - 80; vy = 0; onGround = true; }
+      if (frames % 45 === 0) obstacles.push({ x: W + 20, y: H - 80 - (Math.random() > 0.5 ? 0 : 50), w: 40 + Math.random() * 30, h: 50 });
+      obstacles.forEach(function (o) { o.x -= speed; });
+      obstacles = obstacles.filter(function (o) {
+        if (o.x + o.w < 0) { score++; if (score % 8 === 0) speed += 0.4; return false; }
+        if (px + 16 > o.x && px - 16 < o.x + o.w && py + 16 > o.y && py - 16 < o.y + o.h) {
+          dead = true; sfx("die");
+        }
+        return true;
+      });
+    }
+    // pseudo-3D ground
+    ctx.fillStyle = "#020617"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#0f172a"; ctx.fillRect(0, H - 60, W, 60);
+    for (var i = 0; i < 12; i++) {
+      var yy = H - 60 - i * 8;
+      ctx.strokeStyle = "rgba(51,65,85," + (0.3 + i * 0.05) + ")";
+      ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(W, yy); ctx.stroke();
+    }
+    ctx.fillStyle = "#f43f5e";
+    obstacles.forEach(function (o) { ctx.fillRect(o.x, o.y, o.w, o.h); });
+    ctx.fillStyle = dead ? "#ef4444" : "#22d3ee";
+    ctx.beginPath(); ctx.arc(px, py, 16, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#e2e8f0"; ctx.font = "16px sans-serif";
+    ctx.fillText("Score: " + score, 12, 28);
+    if (dead) {
+      ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#fff"; ctx.font = "22px sans-serif";
+      ctx.fillText("Refresh page or click another game to retry", 80, H / 2);
+    }
+    document.getElementById("play-title").textContent = "Void Run  |  Score: " + score;
+    anim = requestAnimationFrame(loop);
+  }
+  anim = requestAnimationFrame(loop);
+}
+
+function runOutpost() {
+  runCorridor();
+  document.getElementById("play-title").textContent = "Outpost";
+}
+
+function runNightOps() {
+  document.getElementById("game-controls").textContent = "WASD move • Mouse aim • Click shoot";
+  var W = canvas.width, H = canvas.height;
+  var px = W / 2, py = H - 60, angle = -Math.PI / 2;
+  var targets = [], bullets = [], score = 0, frames = 0, keys = {};
+  function spawnT() {
+    targets.push({ x: 60 + Math.random() * (W - 120), y: 40 + Math.random() * 180, r: 14, life: 200 });
+  }
+  for (var i = 0; i < 5; i++) spawnT();
+
+  window.onkeydown = function (e) { keys[e.code] = true; };
+  window.onkeyup = function (e) { keys[e.code] = false; };
+  canvas.onmousemove = function (e) {
+    var r = canvas.getBoundingClientRect();
+    var mx = (e.clientX - r.left) * (W / r.width);
+    var my = (e.clientY - r.top) * (H / r.height);
+    angle = Math.atan2(my - py, mx - px);
+  };
+  canvas.onclick = function () {
+    sfx("shoot");
+    bullets.push({ x: px, y: py, dx: Math.cos(angle) * 11, dy: Math.sin(angle) * 11 });
+  };
+
+  function loop() {
+    if (!running) return;
+    frames++;
+    if (keys["KeyA"] || keys["ArrowLeft"]) px = Math.max(20, px - 5);
+    if (keys["KeyD"] || keys["ArrowRight"]) px = Math.min(W - 20, px + 5);
+    if (keys["KeyW"] || keys["ArrowUp"]) py = Math.max(20, py - 5);
+    if (keys["KeyS"] || keys["ArrowDown"]) py = Math.min(H - 20, py + 5);
+    if (frames % 90 === 0) spawnT();
+
+    bullets.forEach(function (b) { b.x += b.dx; b.y += b.dy; });
+    bullets = bullets.filter(function (b) { return b.x > -20 && b.x < W + 20 && b.y > -20 && b.y < H + 20; });
+    targets.forEach(function (t) { t.life--; });
+    bullets.forEach(function (b, bi) {
+      targets.forEach(function (t, ti) {
+        if (Math.hypot(t.x - b.x, t.y - b.y) < t.r + 4) {
+          targets.splice(ti, 1); bullets.splice(bi, 1); score += 20; sfx("hit");
+        }
+      });
+    });
+    targets = targets.filter(function (t) { return t.life > 0; });
+
+    ctx.fillStyle = "#020617"; ctx.fillRect(0, 0, W, H);
+    // stars
+    ctx.fillStyle = "#334155";
+    for (var i = 0; i < 60; i++) ctx.fillRect((i * 97) % W, (i * 53) % H, 1, 1);
+    targets.forEach(function (t) {
+      var a = Math.min(1, t.life / 60);
+      ctx.fillStyle = "rgba(248,113,113," + a + ")";
+      ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "rgba(254,202,202," + a + ")"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(t.x, t.y, t.r + 4, 0, Math.PI * 2); ctx.stroke();
+    });
+    ctx.fillStyle = "#fbbf24";
+    bullets.forEach(function (b) { ctx.beginPath(); ctx.arc(b.x, b.y, 3, 0, Math.PI * 2); ctx.fill(); });
+    ctx.fillStyle = "#64748b";
+    ctx.beginPath(); ctx.arc(px, py, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + Math.cos(angle) * 26, py + Math.sin(angle) * 26); ctx.stroke();
+
+    document.getElementById("play-title").textContent = "Night Ops  |  Score: " + score;
+    anim = requestAnimationFrame(loop);
+  }
+  anim = requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
